@@ -7,13 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiService } from '@/services/api';
 import { GlassCard } from '@/components/GlassCard';
 import { Navigation } from '@/components/Navigation';
-import { 
-  Check, Edit3, X, Send, Clock, Calendar, Image, FileText, 
-  Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, 
-  Redo, Info, Hash, MessageSquare, TrendingUp 
-} from 'lucide-react';
+import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, Redo, Info, Hash, MessageSquare, TrendingUp } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
-
 interface ContentReview {
   id: string;
   platform: string;
@@ -25,7 +20,6 @@ interface ContentReview {
   character_count?: number;
   tone?: string;
 }
-
 interface Analytics {
   engagement_score: string;
   viral_potential: string;
@@ -34,14 +28,17 @@ interface Analytics {
   strengths: string[];
   improvements: string[];
 }
-
 const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showNotification } = useNotification();
+  const {
+    showNotification
+  } = useNotification();
   const [content, setContent] = useState<ContentReview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingContent, setEditingContent] = useState<{ [key: string]: string }>({});
+  const [editingContent, setEditingContent] = useState<{
+    [key: string]: string;
+  }>({});
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [analytics, setAnalytics] = useState<Analytics>({
@@ -49,67 +46,48 @@ const ReviewContent = () => {
     viral_potential: 'Medium',
     best_posting_time: '2-4 PM weekdays',
     target_audience: 'Young professionals and entrepreneurs interested in social media marketing',
-    strengths: [
-      'Engaging visual content',
-      'Clear call-to-action',
-      'Trending hashtags',
-      'Platform-optimized format'
-    ],
-    improvements: [
-      'Add more emojis for engagement',
-      'Include user-generated content',
-      'Optimize posting schedule',
-      'Enhance visual storytelling'
-    ]
+    strengths: ['Engaging visual content', 'Clear call-to-action', 'Trending hashtags', 'Platform-optimized format'],
+    improvements: ['Add more emojis for engagement', 'Include user-generated content', 'Optimize posting schedule', 'Enhance visual storytelling']
   });
-
   useEffect(() => {
     fetchGeneratedContent();
   }, []);
-
   const fetchGeneratedContent = async () => {
     try {
       setLoading(true);
-      const mockContent: ContentReview[] = [
-        {
-          id: '1',
-          platform: 'facebook',
-          content: 'Check out our latest blog post about social media automation! 🚀 This powerful tool can save you hours each week while maintaining your brand voice across all platforms.',
-          hashtags: ['SocialMedia', 'Automation', 'Marketing'],
-          status: 'pending',
-          engagement_score: 85,
-          character_count: 142,
-          tone: 'professional'
-        },
-        {
-          id: '2',
-          platform: 'twitter',
-          content: 'Just discovered an amazing social media automation tool! 🎯 Save time, stay consistent, and grow your presence across all platforms. Game changer!',
-          hashtags: ['SocialMedia', 'Productivity', 'GrowthHacking'],
-          status: 'pending',
-          engagement_score: 92,
-          character_count: 138,
-          tone: 'enthusiastic'
-        },
-        {
-          id: '3',
-          platform: 'instagram',
-          content: '✨ Social Media Automation is here! Create engaging content for multiple platforms in seconds. Perfect for busy entrepreneurs and content creators.',
-          hashtags: ['Instagram', 'ContentCreation', 'BusinessGrowth'],
-          status: 'pending',
-          engagement_score: 78,
-          character_count: 145,
-          tone: 'inspiring'
-        }
-      ];
-      
+      const mockContent: ContentReview[] = [{
+        id: '1',
+        platform: 'facebook',
+        content: 'Check out our latest blog post about social media automation! 🚀 This powerful tool can save you hours each week while maintaining your brand voice across all platforms.',
+        hashtags: ['SocialMedia', 'Automation', 'Marketing'],
+        status: 'pending',
+        engagement_score: 85,
+        character_count: 142,
+        tone: 'professional'
+      }, {
+        id: '2',
+        platform: 'twitter',
+        content: 'Just discovered an amazing social media automation tool! 🎯 Save time, stay consistent, and grow your presence across all platforms. Game changer!',
+        hashtags: ['SocialMedia', 'Productivity', 'GrowthHacking'],
+        status: 'pending',
+        engagement_score: 92,
+        character_count: 138,
+        tone: 'enthusiastic'
+      }, {
+        id: '3',
+        platform: 'instagram',
+        content: '✨ Social Media Automation is here! Create engaging content for multiple platforms in seconds. Perfect for busy entrepreneurs and content creators.',
+        hashtags: ['Instagram', 'ContentCreation', 'BusinessGrowth'],
+        status: 'pending',
+        engagement_score: 78,
+        character_count: 145,
+        tone: 'inspiring'
+      }];
       setContent(mockContent);
-      setEditingContent(
-        mockContent.reduce((acc, item) => ({
-          ...acc,
-          [item.id]: item.content
-        }), {})
-      );
+      setEditingContent(mockContent.reduce((acc, item) => ({
+        ...acc,
+        [item.id]: item.content
+      }), {}));
     } catch (error) {
       console.error('Error fetching content:', error);
       showNotification('error', 'Error', 'Failed to load generated content');
@@ -117,35 +95,31 @@ const ReviewContent = () => {
       setLoading(false);
     }
   };
-
   const handleApprove = (id: string) => {
-    setContent(prev => prev.map(item => 
-      item.id === id ? { ...item, status: 'approved' } : item
-    ));
+    setContent(prev => prev.map(item => item.id === id ? {
+      ...item,
+      status: 'approved'
+    } : item));
     showNotification('success', 'Content Approved', 'Content has been approved for posting');
   };
-
   const handleEdit = (id: string) => {
     const newContent = editingContent[id];
-    setContent(prev => prev.map(item => 
-      item.id === id ? { ...item, content: newContent } : item
-    ));
+    setContent(prev => prev.map(item => item.id === id ? {
+      ...item,
+      content: newContent
+    } : item));
     showNotification('success', 'Content Updated', 'Content has been updated');
   };
-
   const handleReject = (id: string) => {
     setContent(prev => prev.filter(item => item.id !== id));
     showNotification('info', 'Content Rejected', 'Content has been removed');
   };
-
   const handlePostAll = async () => {
     const approvedContent = content.filter(item => item.status === 'approved');
-    
     if (approvedContent.length === 0) {
       showNotification('info', 'No Content', 'Please approve at least one piece of content');
       return;
     }
-
     try {
       for (const item of approvedContent) {
         await apiService.postContent({
@@ -154,7 +128,6 @@ const ReviewContent = () => {
           hashtags: item.hashtags
         });
       }
-      
       showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
       navigate('/dashboard');
     } catch (error) {
@@ -162,22 +135,17 @@ const ReviewContent = () => {
       showNotification('error', 'Posting Failed', 'Failed to post content. Please try again.');
     }
   };
-
   const handleSchedule = async () => {
     if (!scheduleDate) {
       showNotification('info', 'Schedule Required', 'Please select a date and time');
       return;
     }
-
     const approvedContent = content.filter(item => item.status === 'approved');
-    
     if (approvedContent.length === 0) {
       showNotification('info', 'No Content', 'Please approve at least one piece of content');
       return;
     }
-
     setIsScheduling(true);
-    
     try {
       for (const item of approvedContent) {
         await apiService.schedulePost({
@@ -187,7 +155,6 @@ const ReviewContent = () => {
           scheduled_time: scheduleDate
         });
       }
-      
       showNotification('success', 'Content Scheduled', 'Content has been scheduled successfully!');
       navigate('/dashboard');
     } catch (error) {
@@ -197,9 +164,10 @@ const ReviewContent = () => {
       setIsScheduling(false);
     }
   };
-
   const getPlatformDisplayName = (platform: string) => {
-    const platformNames: { [key: string]: string } = {
+    const platformNames: {
+      [key: string]: string;
+    } = {
       facebook: 'Facebook',
       twitter: 'Twitter',
       instagram: 'Instagram',
@@ -208,20 +176,15 @@ const ReviewContent = () => {
     };
     return platformNames[platform] || platform;
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+    return <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-gray-400">Loading generated content...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-black text-white">
+  return <div className="min-h-screen bg-black text-white">
       <Navigation />
       <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
@@ -238,27 +201,27 @@ const ReviewContent = () => {
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                <h3 className="text-xl flex items-center gap-2 font-semibold text-zinc-950">
                   <Image className="h-5 w-5" />
                   Generated Images
                 </h3>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="text-zinc-900">
                   <Edit3 className="h-4 w-4 mr-2" />
                   Edit Image
                 </Button>
               </div>
-              <p className="text-gray-400 mb-4">AI-generated visual content for your social media posts</p>
+              <p className="mb-4 text-zinc-900">AI-generated visual content for your social media posts</p>
               
-              <div className="bg-gray-900/50 rounded-lg p-6 text-center border border-gray-700">
+              <div className="rounded-lg p-6 text-center border border-gray-700 bg-gray-50">
                 <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center mb-4">
                   <Image className="h-16 w-16 text-gray-600" />
                 </div>
                 <div className="flex gap-2 justify-center">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="text-zinc-950">
                     <Edit3 className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="text-zinc-950">
                     <Redo className="h-4 w-4 mr-1" />
                     Regenerate
                   </Button>
@@ -268,11 +231,11 @@ const ReviewContent = () => {
             
             <div className="lg:w-80">
               <GlassCard className="p-4 bg-gray-900/30">
-                <h6 className="font-semibold text-white mb-2 flex items-center gap-2">
+                <h6 className="font-semibold mb-2 flex items-center gap-2 text-zinc-900">
                   <Info className="h-4 w-4" />
                   Image Details
                 </h6>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-zinc-900">
                   This image was generated using AI based on your content topic and platform requirements.
                 </p>
               </GlassCard>
@@ -282,100 +245,71 @@ const ReviewContent = () => {
 
         {/* Generated Content Section */}
         <GlassCard className="p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+          <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-zinc-950">
             <FileText className="h-5 w-5" />
             Generated Content
           </h3>
-          <p className="text-gray-400 mb-6">Platform-specific captions and content</p>
+          <p className="mb-6 text-zinc-900">Platform-specific captions and content</p>
           
           <div className="space-y-6">
-            {content.map((item) => (
-              <div key={item.id} className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+            {content.map(item => <div key={item.id} className="rounded-lg p-6 border border-gray-700 bg-zinc-100">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-lg px-3 py-1 border-gray-600">
+                    <Badge variant="outline" className="text-lg px-3 py-1 border-gray-600 bg-slate-50">
                       {getPlatformDisplayName(item.platform)}
                     </Badge>
-                    {item.status === 'approved' && (
-                      <Badge className="bg-green-900/30 text-green-400 border-green-600">
+                    {item.status === 'approved' && <Badge className="bg-green-900/30 text-green-400 border-green-600">
                         <Check className="h-3 w-3 mr-1" />
                         Approved
-                      </Badge>
-                    )}
+                      </Badge>}
                   </div>
                   <div className="flex items-center space-x-2">
-                    {item.status === 'pending' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReject(item.id)}
-                          className="text-red-400 border-red-600 hover:bg-red-900/20"
-                        >
+                    {item.status === 'pending' && <>
+                        <Button size="sm" variant="outline" onClick={() => handleReject(item.id)} className="text-red-400 border-red-600 bg-slate-50 rounded-sm">
                           <X className="h-4 w-4 mr-1" />
                           Reject
                         </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleApprove(item.id)}
-                          className="bg-green-900/30 text-green-400 border-green-600 hover:bg-green-900/50"
-                        >
+                        <Button size="sm" onClick={() => handleApprove(item.id)} className="border-green-600 text-lime-500 text-base rounded text-justify bg-slate-50">
                           <Check className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
-                      </>
-                    )}
+                      </>}
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h6 className="text-white flex items-center gap-2">
+                      <h6 className="flex items-center gap-2 text-neutral-950">
                         <MessageSquare className="h-4 w-4" />
                         Caption:
                       </h6>
-                      {item.status !== 'approved' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(item.id)}
-                        >
+                      {item.status !== 'approved' && <Button size="sm" variant="outline" onClick={() => handleEdit(item.id)}>
                           <Edit3 className="h-4 w-4 mr-1" />
                           Edit Caption
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
-                    <Textarea
-                      value={editingContent[item.id] || item.content}
-                      onChange={(e) => setEditingContent(prev => ({
-                        ...prev,
-                        [item.id]: e.target.value
-                      }))}
-                      className="min-h-[100px] bg-gray-800 border-gray-600 text-white"
-                      disabled={item.status === 'approved'}
-                    />
+                    <Textarea value={editingContent[item.id] || item.content} onChange={e => setEditingContent(prev => ({
+                  ...prev,
+                  [item.id]: e.target.value
+                }))} className="min-h-[100px] bg-gray-800 border-gray-600 text-white" disabled={item.status === 'approved'} />
                   </div>
                   
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h6 className="text-white flex items-center gap-2">
+                      <h6 className="flex items-center gap-2 text-neutral-950">
                         <Hash className="h-4 w-4" />
                         Hashtags:
                       </h6>
-                      {item.status !== 'approved' && (
-                        <Button size="sm" variant="outline">
+                      {item.status !== 'approved' && <Button size="sm" variant="outline">
                           <Edit3 className="h-4 w-4 mr-1" />
                           Edit Hashtags
-                        </Button>
-                      )}
+                        </Button>}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {item.hashtags.map((hashtag, index) => (
-                        <Badge key={index} className="bg-white text-black hover:bg-gray-200">
+                      {item.hashtags.map((hashtag, index) => <Badge key={index} className="bg-white text-black hover:bg-gray-200 rounded-sm">
                           #{hashtag}
-                        </Badge>
-                      ))}
+                        </Badge>)}
                     </div>
                   </div>
                   
@@ -394,8 +328,7 @@ const ReviewContent = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
         </GlassCard>
 
@@ -469,11 +402,9 @@ const ReviewContent = () => {
                   Strengths
                 </h6>
                 <div className="space-y-2">
-                  {analytics.strengths.map((strength, index) => (
-                    <div key={index} className="p-2 bg-green-900/20 rounded border-l-2 border-green-400">
+                  {analytics.strengths.map((strength, index) => <div key={index} className="p-2 bg-green-900/20 rounded border-l-2 border-green-400">
                       <small className="text-gray-300">{strength}</small>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </div>
               
@@ -483,11 +414,9 @@ const ReviewContent = () => {
                   Suggested Improvements
                 </h6>
                 <div className="space-y-2">
-                  {analytics.improvements.map((improvement, index) => (
-                    <div key={index} className="p-2 bg-blue-900/20 rounded border-l-2 border-blue-400 hover:bg-blue-900/30 transition-colors">
+                  {analytics.improvements.map((improvement, index) => <div key={index} className="p-2 bg-blue-900/20 rounded border-l-2 border-blue-400 hover:bg-blue-900/30 transition-colors">
                       <small className="text-gray-300">{improvement}</small>
-                    </div>
-                  ))}
+                    </div>)}
                 </div>
               </div>
             </div>
@@ -495,8 +424,7 @@ const ReviewContent = () => {
         </GlassCard>
 
         {/* Action Buttons */}
-        {content.length > 0 && (
-          <GlassCard className="p-6 sticky bottom-4">
+        {content.length > 0 && <GlassCard className="p-6 sticky bottom-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">Ready to Post?</h3>
@@ -508,39 +436,22 @@ const ReviewContent = () => {
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-400" />
-                  <input
-                    type="datetime-local"
-                    value={scheduleDate}
-                    onChange={(e) => setScheduleDate(e.target.value)}
-                    className="border border-gray-600 bg-gray-800 text-white rounded-md px-3 py-2 text-sm"
-                    min={new Date().toISOString().slice(0, 16)}
-                  />
+                  <input type="datetime-local" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="border border-gray-600 bg-gray-800 text-white rounded-md px-3 py-2 text-sm" min={new Date().toISOString().slice(0, 16)} />
                 </div>
                 
-                <Button
-                  variant="outline"
-                  onClick={handleSchedule}
-                  disabled={isScheduling || !scheduleDate}
-                  className="flex items-center gap-2"
-                >
+                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate} className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   Schedule
                 </Button>
                 
-                <Button
-                  onClick={handlePostAll}
-                  className="bg-white text-black hover:bg-gray-200 flex items-center gap-2"
-                >
+                <Button onClick={handlePostAll} className="bg-white text-black hover:bg-gray-200 flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   Post Now
                 </Button>
               </div>
             </div>
-          </GlassCard>
-        )}
+          </GlassCard>}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ReviewContent;
