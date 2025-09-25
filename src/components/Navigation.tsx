@@ -1,27 +1,24 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Home, 
-  LayoutDashboard, 
-  Users, 
-  Rocket,
-  Menu,
-  X
-} from 'lucide-react';
-
+import { Home, LayoutDashboard, Users, Rocket, Menu, X } from 'lucide-react';
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-
-  const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/accounts', icon: Users, label: 'Accounts' },
-  ];
-
-  return (
-    <nav className="bg-black border-b border-gray-800 z-50">
-      <div className="container mx-auto px-4">
+  const navItems = [{
+    path: '/',
+    icon: Home,
+    label: 'Home'
+  }, {
+    path: '/dashboard',
+    icon: LayoutDashboard,
+    label: 'Dashboard'
+  }, {
+    path: '/accounts',
+    icon: Users,
+    label: 'Accounts'
+  }];
+  return <nav className="bg-black border-b border-gray-800 z-50">
+      <div className="container mx-auto px-4 bg-zinc-950">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-gray-300 transition-colors">
@@ -31,60 +28,39 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map(({ path, icon: Icon, label }) => (
-              <NavLink
-                key={path}
-                to={path}
-                className={({ isActive }) => 
-                  `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-white/20 text-white font-medium' 
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`
-                }
-              >
+            {navItems.map(({
+            path,
+            icon: Icon,
+            label
+          }) => <NavLink key={path} to={path} className={({
+            isActive
+          }) => `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
                 <Icon className="h-4 w-4" />
                 <span>{label}</span>
-              </NavLink>
-            ))}
+              </NavLink>)}
           </div>
 
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm" 
-            className="md:hidden text-white hover:bg-white/10"
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <Button variant="ghost" size="sm" className="md:hidden text-white hover:bg-white/10" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-white/10">
+        {isOpen && <div className="md:hidden py-4 border-t border-white/10">
             <div className="flex flex-col space-y-2">
-              {navItems.map(({ path, icon: Icon, label }) => (
-                <NavLink
-                  key={path}
-                  to={path}
-                  className={({ isActive }) => 
-                    `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${
-                      isActive 
-                        ? 'bg-white/20 text-white font-medium' 
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
-                    }`
-                  }
-                  onClick={() => setIsOpen(false)}
-                >
+              {navItems.map(({
+            path,
+            icon: Icon,
+            label
+          }) => <NavLink key={path} to={path} className={({
+            isActive
+          }) => `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10'}`} onClick={() => setIsOpen(false)}>
                   <Icon className="h-5 w-5" />
                   <span>{label}</span>
-                </NavLink>
-              ))}
+                </NavLink>)}
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 };
