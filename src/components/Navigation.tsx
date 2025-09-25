@@ -24,7 +24,7 @@ export const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-primary-glow transition-colors">
+          <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-gray-300 transition-colors">
             <Rocket className="h-6 w-6" />
             <span>GetLate Social</span>
           </NavLink>

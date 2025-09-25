@@ -49,7 +49,7 @@ export default function Error({
           <Button
             onClick={() => window.location.reload()}
             variant="outline"
-            className="border-primary text-primary hover:bg-primary/5"
+            className="border-black text-black hover:bg-black/5"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again

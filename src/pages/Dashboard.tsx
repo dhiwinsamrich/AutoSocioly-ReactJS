@@ -19,28 +19,28 @@ const metrics = [
     value: '247',
     change: '+12%',
     icon: BarChart3,
-    color: 'text-blue-600'
+    color: 'text-gray-600'
   },
   {
     title: 'Engagement Rate',
     value: '8.4%',
     change: '+2.1%',
     icon: TrendingUp,
-    color: 'text-green-600'
+    color: 'text-gray-700'
   },
   {
     title: 'Followers',
     value: '12.4K',
     change: '+5.7%',
     icon: Users,
-    color: 'text-purple-600'
+    color: 'text-gray-800'
   },
   {
     title: 'Scheduled',
     value: '18',
     change: '+3',
     icon: Calendar,
-    color: 'text-orange-600'
+    color: 'text-gray-900'
   }
 ];
 
@@ -96,7 +96,7 @@ export default function Dashboard() {
                   <div className={`p-2 rounded-lg bg-white/10 ${metric.color}`}>
                     <Icon className="h-6 w-6" />
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-800">
                     {metric.change}
                   </Badge>
                 </div>
@@ -121,9 +121,9 @@ export default function Dashboard() {
                     <Button
                       key={index}
                       variant="outline"
-                      className="w-full justify-start h-12 hover:bg-primary/5 hover:border-primary transition-all duration-300"
+                      className="w-full justify-start h-12 hover:bg-black/5 hover:border-black transition-all duration-300"
                     >
-                      <Icon className="mr-3 h-5 w-5 text-primary" />
+                      <Icon className="mr-3 h-5 w-5 text-black" />
                       {action.label}
                     </Button>
                   );
@@ -137,7 +137,7 @@ export default function Dashboard() {
             <GlassCard className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900">Recent Activity</h3>
-                <Button variant="ghost" size="sm" className="text-primary hover:text-primary-dark">
+                <Button variant="ghost" size="sm" className="text-black hover:text-gray-800">
                   <Eye className="mr-2 h-4 w-4" />
                   View All
                 </Button>
@@ -148,7 +148,7 @@ export default function Dashboard() {
                   <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div className={`w-2 h-2 rounded-full ${
-                        activity.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
+                        activity.status === 'success' ? 'bg-black' : 'bg-gray-500'
                       }`} />
                       <div>
                         <p className="font-medium text-gray-900">{activity.action}</p>
@@ -174,10 +174,10 @@ export default function Dashboard() {
               {['Facebook', 'Twitter', 'Instagram', 'LinkedIn'].map((platform) => (
                 <div key={platform} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full" />
+                    <div className="w-3 h-3 bg-black rounded-full" />
                     <span className="font-medium text-gray-900">{platform}</span>
                   </div>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-800">
                     Connected
                   </Badge>
                 </div>

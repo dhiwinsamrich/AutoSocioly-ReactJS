@@ -76,7 +76,7 @@ export const ContentCreationForm = () => {
   return (
     <GlassCard className="p-8 max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <div className="bg-gradient-primary w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-gradient-to-br from-black to-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
           <Wand2 className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -99,13 +99,13 @@ export const ContentCreationForm = () => {
               placeholder="Enter your topic, idea, or let our AI suggest trending topics..."
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
-              className="min-h-[100px] pr-12 resize-none border-2 focus:border-primary"
+              className="min-h-[100px] pr-12 resize-none border-2 focus:border-black"
             />
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="absolute right-2 top-2 text-primary hover:text-primary-dark"
+              className="absolute right-2 top-2 text-black hover:text-gray-800"
             >
               <Mic className="h-4 w-4" />
             </Button>
@@ -116,7 +116,7 @@ export const ContentCreationForm = () => {
         <div className="space-y-2">
           <Label className="text-sm font-medium text-gray-700">Content Tone</Label>
           <Select value={tone} onValueChange={setTone}>
-            <SelectTrigger className="border-2 focus:border-primary">
+            <SelectTrigger className="border-2 focus:border-black">
               <SelectValue placeholder="Select content tone" />
             </SelectTrigger>
             <SelectContent>
@@ -145,13 +145,13 @@ export const ContentCreationForm = () => {
                     p-4 rounded-lg border-2 cursor-pointer transition-all duration-300
                     flex flex-col items-center space-y-2 hover:shadow-md
                     ${isSelected 
-                      ? 'border-primary bg-primary/5 shadow-md' 
-                      : 'border-gray-200 hover:border-primary/50'
+                      ? 'border-black bg-black/5 shadow-md' 
+                      : 'border-gray-200 hover:border-black/50'
                     }
                   `}
                 >
-                  <Icon className={`h-6 w-6 ${isSelected ? 'text-primary' : 'text-gray-500'}`} />
-                  <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-gray-700'}`}>
+                  <Icon className={`h-6 w-6 ${isSelected ? 'text-black' : 'text-gray-500'}`} />
+                  <span className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-gray-700'}`}>
                     {platform.name}
                   </span>
                   <Checkbox 

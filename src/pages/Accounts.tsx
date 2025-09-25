@@ -25,7 +25,7 @@ const socialPlatforms = [
     connected: true,
     status: 'active',
     followers: '2.4K',
-    color: 'text-blue-600'
+    color: 'text-gray-600'
   },
   {
     id: 'twitter',
@@ -34,7 +34,7 @@ const socialPlatforms = [
     connected: true,
     status: 'active',
     followers: '1.8K',
-    color: 'text-sky-500'
+    color: 'text-gray-700'
   },
   {
     id: 'instagram',
@@ -43,7 +43,7 @@ const socialPlatforms = [
     connected: true,
     status: 'pending',
     followers: '3.2K',
-    color: 'text-pink-600'
+    color: 'text-gray-800'
   },
   {
     id: 'linkedin',
@@ -52,7 +52,7 @@ const socialPlatforms = [
     connected: false,
     status: 'disconnected',
     followers: '0',
-    color: 'text-blue-700'
+    color: 'text-gray-900'
   },
   {
     id: 'youtube',
@@ -61,7 +61,7 @@ const socialPlatforms = [
     connected: false,
     status: 'disconnected',
     followers: '0',
-    color: 'text-red-600'
+    color: 'text-gray-600'
   },
   {
     id: 'tiktok',
@@ -70,16 +70,16 @@ const socialPlatforms = [
     connected: false,
     status: 'disconnected',
     followers: '0',
-    color: 'text-gray-900'
+    color: 'text-gray-700'
   }
 ];
 
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'active':
-      return <CheckCircle className="h-4 w-4 text-green-600" />;
+      return <CheckCircle className="h-4 w-4 text-black" />;
     case 'pending':
-      return <Clock className="h-4 w-4 text-yellow-600" />;
+      return <Clock className="h-4 w-4 text-gray-600" />;
     default:
       return <AlertCircle className="h-4 w-4 text-gray-400" />;
   }
@@ -88,9 +88,9 @@ const getStatusIcon = (status: string) => {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'active':
-      return <Badge variant="secondary" className="bg-green-100 text-green-800">Connected</Badge>;
+      return <Badge variant="secondary" className="bg-gray-800 text-white">Connected</Badge>;
     case 'pending':
-      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      return <Badge variant="secondary" className="bg-gray-600 text-white">Pending</Badge>;
     default:
       return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Disconnected</Badge>;
   }
@@ -190,11 +190,11 @@ export default function Accounts() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Active connections</span>
-                <span className="font-semibold text-green-600">3/6</span>
+                <span className="font-semibold text-black">3/6</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Pending approvals</span>
-                <span className="font-semibold text-yellow-600">1</span>
+                <span className="font-semibold text-gray-600">1</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Last sync</span>

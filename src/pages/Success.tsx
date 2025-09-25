@@ -19,7 +19,7 @@ export default function Success({
     <div className="min-h-screen flex items-center justify-center p-4">
       <GlassCard className="p-12 text-center max-w-md w-full">
         <div className="mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-20 h-20 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <CheckCircle className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{title}</h1>
@@ -37,7 +37,7 @@ export default function Success({
           <Button
             onClick={() => navigate('/dashboard')}
             variant="outline"
-            className="border-primary text-primary hover:bg-primary/5"
+            className="border-black text-black hover:bg-black/5"
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Dashboard
