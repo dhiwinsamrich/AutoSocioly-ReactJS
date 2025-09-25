@@ -26,6 +26,8 @@ const platforms = [
   { id: 'twitter', name: 'Twitter', icon: Twitter },
   { id: 'instagram', name: 'Instagram', icon: Instagram },
   { id: 'linkedin', name: 'LinkedIn', icon: Linkedin },
+  // { id: 'pinterest', name: 'Pinterest', icon: Pinterest },
+  // { id: 'reddit', name: 'Reddit', icon: Reddit },
 ];
 
 export const ContentCreationForm = () => {
@@ -117,7 +119,7 @@ export const ContentCreationForm = () => {
             <Wand2 className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            AI-Powered Social Media Content Creator
+            Prompt! Review! Grow!
           </h1>
           <p className="text-gray-600">
             Generate engaging content for all your social media platforms in seconds
