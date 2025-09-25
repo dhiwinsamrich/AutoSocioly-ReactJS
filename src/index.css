@@ -2,41 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Social Media Automation Design System 
+All colors MUST be HSL. */
 
 @layer base {
   :root {
+    /* Base colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
+    /* Card system */
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
+    --card-glass: 0 0% 100% / 0.95;
 
+    /* Popover system */
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand colors - Blue to Purple gradient theme */
+    --primary: 224 71% 64%; /* #667eea */
+    --primary-dark: 250 48% 54%; /* #764ba2 */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 224 71% 74%;
 
+    /* Secondary system */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
+    /* Utility colors */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
+    /* Status colors */
+    --success: 142 71% 45%; /* #28a745 */
+    --success-foreground: 0 0% 100%;
+    --warning: 45 100% 51%; /* #ffc107 */
+    --warning-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Form elements */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 224 71% 64%;
 
-    --radius: 0.5rem;
+    /* Design system */
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +114,46 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    min-height: 100vh;
+    color: hsl(var(--foreground));
+  }
+}
+
+/* Gradient utilities and glass effects */
+@layer utilities {
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+  }
+  
+  .bg-gradient-success {
+    background: linear-gradient(135deg, hsl(var(--success)) 0%, #20c997 100%);
+  }
+  
+  .glass-card {
+    background: hsla(var(--card-glass));
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.1);
+  }
+  
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px hsl(var(--primary) / 0.15);
+  }
+  
+  .btn-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%);
+    box-shadow: 0 4px 15px hsl(var(--primary) / 0.3);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px hsl(var(--primary) / 0.4);
   }
 }
