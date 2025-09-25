@@ -7,6 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { GlassCard } from './GlassCard';
+import { GeneratingLoader } from './GeneratingLoader';
+import { NotificationToast } from './NotificationToast';
+import { useNotification } from '../hooks/useNotification';
 import { 
   Wand2, 
   Mic, 
@@ -16,7 +19,6 @@ import {
   Linkedin,
   Loader2
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const platforms = [
   { id: 'facebook', name: 'Facebook', icon: Facebook },
@@ -30,7 +32,7 @@ export const ContentCreationForm = () => {
   const [tone, setTone] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { notifications, showNotification, removeNotification } = useNotification();
 
   const handlePlatformToggle = (platformId: string) => {
     setSelectedPlatforms(prev => 
@@ -44,20 +46,12 @@ export const ContentCreationForm = () => {
     e.preventDefault();
     
     if (!topic.trim()) {
-      toast({
-        title: "Topic Required",
-        description: "Please enter a topic for your content.",
-        variant: "destructive"
-      });
+      showNotification('error', 'Topic Required', 'Please enter a topic for your content.');
       return;
     }
 
     if (selectedPlatforms.length === 0) {
-      toast({
-        title: "Platform Required", 
-        description: "Please select at least one social media platform.",
-        variant: "destructive"
-      });
+      showNotification('error', 'Platform Required', 'Please select at least one social media platform.');
       return;
     }
 
@@ -66,15 +60,27 @@ export const ContentCreationForm = () => {
     // Simulate content generation
     setTimeout(() => {
       setIsLoading(false);
-      toast({
-        title: "Content Generated!",
-        description: "Your social media content has been created successfully.",
-      });
-    }, 2000);
+      showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
+    }, 3000);
   };
 
   return (
-    <GlassCard className="p-8 max-w-4xl mx-auto">
+    <>
+      <GeneratingLoader isVisible={isLoading} text="GENERATING" />
+      
+      {/* Notifications */}
+      {notifications.map((notification) => (
+        <NotificationToast
+          key={notification.id}
+          type={notification.type}
+          title={notification.title}
+          description={notification.description}
+          isVisible={notification.isVisible}
+          onClose={() => removeNotification(notification.id)}
+        />
+      ))}
+
+      <GlassCard className="p-8 max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <div className="bg-gradient-to-br from-black to-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
           <Wand2 className="h-8 w-8 text-white" />
@@ -188,5 +194,6 @@ export const ContentCreationForm = () => {
         </div>
       </form>
     </GlassCard>
+  </>
   );
 };
