@@ -1,4 +1,8 @@
 import { useState } from 'react';
+<<<<<<< HEAD
+=======
+import { useNavigate } from 'react-router-dom';
+>>>>>>> d2784f3 (Backend implemented on the Homepage)
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +14,10 @@ import { GlassCard } from './GlassCard';
 import { GeneratingLoader } from './GeneratingLoader';
 import { NotificationToast } from './NotificationToast';
 import { useNotification } from '../hooks/useNotification';
+<<<<<<< HEAD
+=======
+import { apiService } from '../services/api';
+>>>>>>> d2784f3 (Backend implemented on the Homepage)
 import { 
   Wand2, 
   Mic, 
@@ -33,6 +41,7 @@ export const ContentCreationForm = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { notifications, showNotification, removeNotification } = useNotification();
+<<<<<<< HEAD
 
   const handlePlatformToggle = (platformId: string) => {
     setSelectedPlatforms(prev => 
@@ -40,6 +49,24 @@ export const ContentCreationForm = () => {
         ? prev.filter(id => id !== platformId)
         : [...prev, platformId]
     );
+=======
+  const navigate = useNavigate();
+
+
+  const handlePlatformToggle = (platformId: string) => {
+    try {
+      setSelectedPlatforms(prev => {
+        const newSelection = prev.includes(platformId) 
+          ? prev.filter(id => id !== platformId)
+          : [...prev, platformId];
+        console.log(`Platform toggle: ${platformId}, new selection:`, newSelection);
+        return newSelection;
+      });
+    } catch (error) {
+      console.error('Error toggling platform:', error);
+      showNotification('error', 'Platform Selection Error', 'Failed to select platform. Please try again.');
+    }
+>>>>>>> d2784f3 (Backend implemented on the Homepage)
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,11 +84,45 @@ export const ContentCreationForm = () => {
 
     setIsLoading(true);
     
+<<<<<<< HEAD
     // Simulate content generation
     setTimeout(() => {
       setIsLoading(false);
       showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
     }, 3000);
+=======
+    try {
+      // Use default tone if none selected
+      const contentTone = tone || 'professional';
+      
+      // Create content using API service
+      const response = await apiService.createContent({
+        topic: topic.trim(),
+        platforms: selectedPlatforms,
+        tone: contentTone,
+        include_image: false, // Default to false for now
+        caption_length: 'short',
+        hashtag_count: 10
+      });
+
+      if (response.success) {
+        setIsLoading(false);
+        showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
+        
+        // Navigate to dashboard or review page after successful creation
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } else {
+        setIsLoading(false);
+        showNotification('error', 'Generation Failed', response.message || response.error || 'Failed to generate content. Please try again.');
+      }
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Content creation error:', error);
+      showNotification('error', 'Generation Error', 'An error occurred while generating content. Please try again.');
+    }
+>>>>>>> d2784f3 (Backend implemented on the Homepage)
   };
 
   return (
@@ -160,11 +221,23 @@ export const ContentCreationForm = () => {
                   <span className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-gray-700'}`}>
                     {platform.name}
                   </span>
+<<<<<<< HEAD
                   <Checkbox 
                     checked={isSelected}
                     onChange={() => {}}
                     className="pointer-events-none"
                   />
+=======
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                    isSelected ? 'bg-black border-black' : 'border-gray-300'
+                  }`}>
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+>>>>>>> d2784f3 (Backend implemented on the Homepage)
                 </div>
               );
             })}
