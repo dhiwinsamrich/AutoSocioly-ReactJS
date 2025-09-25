@@ -24,43 +24,43 @@ const platforms = [
     id: 'facebook', 
     name: 'Facebook', 
     icon: faFacebookF,
-    color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    color: '#1877F2',
+    glowColor: 'rgba(24, 119, 242, 0.4)'
   },
   { 
     id: 'x', 
     name: 'X', 
     icon: faXTwitter,
     color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    glowColor: 'rgba(0, 0, 0, 0.4)'
   },
   { 
     id: 'instagram', 
     name: 'Instagram', 
     icon: faInstagram,
-    color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    color: '#E4405F',
+    glowColor: 'rgba(228, 64, 95, 0.4)'
   },
   { 
     id: 'linkedin', 
     name: 'LinkedIn', 
     icon: faLinkedinIn,
-    color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    color: '#0077B5',
+    glowColor: 'rgba(0, 119, 181, 0.4)'
   },
   { 
     id: 'reddit', 
     name: 'Reddit', 
     icon: faRedditAlien,
-    color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    color: '#FF4500',
+    glowColor: 'rgba(255, 69, 0, 0.4)'
   },
   { 
     id: 'pinterest', 
     name: 'Pinterest', 
     icon: faPinterestP,
-    color: '#000000',
-    glowColor: 'rgba(0, 0, 0, 0.3)'
+    color: '#BD081C',
+    glowColor: 'rgba(189, 8, 28, 0.4)'
   },
 ];
 
@@ -229,7 +229,7 @@ export const ContentCreationForm = () => {
                       icon={platform.icon} 
                       className="h-6 w-6"
                       style={{ 
-                        color: isSelected ? '#000000' : '#6B7280'
+                        color: isSelected ? platform.color : '#6B7280'
                       }}
                     />
                     <span className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-gray-700'}`}>

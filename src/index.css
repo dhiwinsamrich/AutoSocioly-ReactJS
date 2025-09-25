@@ -335,4 +335,88 @@ All colors MUST be HSL. */
     50% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-10px); }
   }
+
+  /* Initial App Loader Styles */
+  .text-loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .text-loader {
+    display: flex;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .letter, .dot {
+    display: inline-block;
+    opacity: 0;
+    animation: letter-appear 2s ease-in-out infinite;
+    animation-delay: var(--delay);
+    position: relative;
+  }
+
+  .letter::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: transparent;
+    border-bottom: 3px dashed #fff;
+    opacity: 0;
+    animation: dash-animate 2s ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+
+  .dot {
+    font-size: 3rem;
+    margin-left: 0.1em;
+  }
+
+  .dot-1 {
+    animation-delay: 0.9s;
+  }
+
+  .dot-2 {
+    animation-delay: 1.0s;
+  }
+
+  .dot-3 {
+    animation-delay: 1.1s;
+  }
+
+  @keyframes letter-appear {
+    0%, 10% {
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+    }
+    15%, 85% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    90%, 100% {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.8);
+    }
+  }
+
+  @keyframes dash-animate {
+    0%, 10% {
+      opacity: 0;
+      stroke-dashoffset: 10;
+    }
+    15%, 85% {
+      opacity: 1;
+      stroke-dashoffset: 0;
+    }
+    90%, 100% {
+      opacity: 0;
+      stroke-dashoffset: -10;
+    }
+  }
 }
