@@ -20,7 +20,7 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-white/10 backdrop-blur-md border-b border-white/10 z-50">
+    <nav className="bg-black border-b border-gray-800 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
