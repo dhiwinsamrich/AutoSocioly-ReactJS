@@ -11,23 +11,57 @@ import { GeneratingLoader } from './GeneratingLoader';
 import { NotificationToast } from './NotificationToast';
 import { useNotification } from '../hooks/useNotification';
 import { apiService } from '../services/api';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXTwitter, faFacebookF, faInstagram, faLinkedinIn, faRedditAlien, faPinterestP } from '@fortawesome/free-brands-svg-icons';
 import { 
   Wand2, 
   Mic, 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Linkedin,
   Loader2
 } from 'lucide-react';
 
 const platforms = [
-  { id: 'facebook', name: 'Facebook', icon: Facebook },
-  { id: 'twitter', name: 'Twitter', icon: Twitter },
-  { id: 'instagram', name: 'Instagram', icon: Instagram },
-  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin },
-  // { id: 'pinterest', name: 'Pinterest', icon: Pinterest },
-  // { id: 'reddit', name: 'Reddit', icon: Reddit },
+  { 
+    id: 'facebook', 
+    name: 'Facebook', 
+    icon: faFacebookF,
+    color: '#1877F2',
+    glowColor: 'rgba(24, 119, 242, 0.6)'
+  },
+  { 
+    id: 'x', 
+    name: 'X', 
+    icon: faXTwitter,
+    color: '#000000',
+    glowColor: 'rgba(0, 0, 0, 0.6)'
+  },
+  { 
+    id: 'instagram', 
+    name: 'Instagram', 
+    icon: faInstagram,
+    color: '#E4405F',
+    glowColor: 'rgba(228, 64, 95, 0.6)'
+  },
+  { 
+    id: 'linkedin', 
+    name: 'LinkedIn', 
+    icon: faLinkedinIn,
+    color: '#0A66C2',
+    glowColor: 'rgba(10, 102, 194, 0.6)'
+  },
+  { 
+    id: 'reddit', 
+    name: 'Reddit', 
+    icon: faRedditAlien,
+    color: '#FF4500',
+    glowColor: 'rgba(255, 69, 0, 0.6)'
+  },
+  { 
+    id: 'pinterest', 
+    name: 'Pinterest', 
+    icon: faPinterestP,
+    color: '#BD081C',
+    glowColor: 'rgba(189, 8, 28, 0.6)'
+  },
 ];
 
 export const ContentCreationForm = () => {
@@ -171,9 +205,8 @@ export const ContentCreationForm = () => {
           {/* Platform Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-gray-700">Select Platforms</Label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {platforms.map((platform) => {
-                const Icon = platform.icon;
                 const isSelected = selectedPlatforms.includes(platform.id);
                 
                 return (
@@ -182,14 +215,23 @@ export const ContentCreationForm = () => {
                     onClick={() => handlePlatformToggle(platform.id)}
                     className={`
                       p-4 rounded-lg border-2 cursor-pointer transition-all duration-300
-                      flex flex-col items-center space-y-2 hover:shadow-md
+                      flex flex-col items-center space-y-2 hover:shadow-md relative
                       ${isSelected 
                         ? 'border-black bg-black/5 shadow-md' 
                         : 'border-gray-200 hover:border-black/50'
                       }
                     `}
+                    style={isSelected ? {
+                      boxShadow: `0 0 20px ${platform.glowColor}, 0 0 40px ${platform.glowColor}`
+                    } : {}}
                   >
-                    <Icon className={`h-6 w-6 ${isSelected ? 'text-black' : 'text-gray-500'}`} />
+                    <FontAwesomeIcon 
+                      icon={platform.icon} 
+                      className="h-6 w-6"
+                      style={{ 
+                        color: isSelected ? platform.color : '#6B7280'
+                      }}
+                    />
                     <span className={`text-sm font-medium ${isSelected ? 'text-black' : 'text-gray-700'}`}>
                       {platform.name}
                     </span>
