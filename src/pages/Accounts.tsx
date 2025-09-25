@@ -3,12 +3,9 @@ import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-<<<<<<< HEAD
-=======
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
->>>>>>> d2784f3 (Backend implemented on the Homepage)
 import { 
   Plus,
   Settings,
@@ -20,67 +17,6 @@ import {
   Music,
   CheckCircle,
   AlertCircle,
-<<<<<<< HEAD
-  Clock
-} from 'lucide-react';
-
-const socialPlatforms = [
-  {
-    id: 'facebook',
-    name: 'Facebook',
-    icon: Facebook,
-    connected: true,
-    status: 'active',
-    followers: '2.4K',
-    color: 'text-gray-600'
-  },
-  {
-    id: 'twitter',
-    name: 'Twitter',
-    icon: Twitter,
-    connected: true,
-    status: 'active',
-    followers: '1.8K',
-    color: 'text-gray-700'
-  },
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    icon: Instagram,
-    connected: true,
-    status: 'pending',
-    followers: '3.2K',
-    color: 'text-gray-800'
-  },
-  {
-    id: 'linkedin',
-    name: 'LinkedIn',
-    icon: Linkedin,
-    connected: false,
-    status: 'disconnected',
-    followers: '0',
-    color: 'text-gray-900'
-  },
-  {
-    id: 'youtube',
-    name: 'YouTube',
-    icon: Youtube,
-    connected: false,
-    status: 'disconnected',
-    followers: '0',
-    color: 'text-gray-600'
-  },
-  {
-    id: 'tiktok',
-    name: 'TikTok',
-    icon: Music,
-    connected: false,
-    status: 'disconnected',
-    followers: '0',
-    color: 'text-gray-700'
-  }
-];
-=======
   Clock,
   Users
 } from 'lucide-react';
@@ -112,7 +48,6 @@ const platformColors = {
   youtube: 'text-gray-600',
   tiktok: 'text-gray-700'
 };
->>>>>>> d2784f3 (Backend implemented on the Homepage)
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -137,8 +72,6 @@ const getStatusBadge = (status: string) => {
 };
 
 export default function Accounts() {
-<<<<<<< HEAD
-=======
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -163,7 +96,6 @@ export default function Accounts() {
         }));
         setAccounts(accountData);
       } else {
-        // Handle empty or different response structure
         setAccounts([]);
       }
     } catch (error) {
@@ -178,7 +110,6 @@ export default function Accounts() {
     try {
       const response = await apiService.connectAccount(platform, {});
       if (response.success) {
-        // Redirect to OAuth flow or refresh accounts
         if (response.data?.auth_url) {
           window.location.href = response.data.auth_url;
         } else {
@@ -218,7 +149,6 @@ export default function Accounts() {
     );
   }
 
->>>>>>> d2784f3 (Backend implemented on the Homepage)
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -241,50 +171,6 @@ export default function Accounts() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<<<<<<< HEAD
-              {socialPlatforms.map((platform) => {
-                const Icon = platform.icon;
-                return (
-                  <div key={platform.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg bg-gray-50 ${platform.color}`}>
-                          <Icon className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{platform.name}</h3>
-                          <p className="text-sm text-gray-500">{platform.followers} followers</p>
-                        </div>
-                      </div>
-                      {getStatusIcon(platform.status)}
-                    </div>
-
-                    <div className="flex items-center justify-between mb-4">
-                      {getStatusBadge(platform.status)}
-                      <Switch checked={platform.connected} />
-                    </div>
-
-                    <div className="flex space-x-2">
-                      {platform.connected ? (
-                        <>
-                          <Button variant="outline" size="sm" className="flex-1">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Configure
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                            Disconnect
-                          </Button>
-                        </>
-                      ) : (
-                        <Button size="sm" className="w-full" variant="gradient">
-                          Connect {platform.name}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-=======
               {accounts.length > 0 ? (
                 accounts.map((platform) => {
                   const Icon = platform.icon;
@@ -365,7 +251,6 @@ export default function Accounts() {
                   </div>
                 </div>
               )}
->>>>>>> d2784f3 (Backend implemented on the Homepage)
             </div>
           </GlassCard>
         </div>
@@ -395,17 +280,6 @@ export default function Accounts() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Active connections</span>
-<<<<<<< HEAD
-                <span className="font-semibold text-black">3/6</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Pending approvals</span>
-                <span className="font-semibold text-gray-600">1</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Last sync</span>
-                <span className="font-semibold text-gray-900">2 min ago</span>
-=======
                 <span className="font-semibold text-black">
                   {accounts.filter(acc => acc.connected).length}/{accounts.length}
                 </span>
@@ -419,7 +293,6 @@ export default function Accounts() {
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Last sync</span>
                 <span className="font-semibold text-gray-900">Just now</span>
->>>>>>> d2784f3 (Backend implemented on the Homepage)
               </div>
               <div className="pt-4">
                 <Button variant="outline" className="w-full">
