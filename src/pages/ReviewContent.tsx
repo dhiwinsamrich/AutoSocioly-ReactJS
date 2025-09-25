@@ -201,27 +201,27 @@ const ReviewContent = () => {
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl flex items-center gap-2 font-semibold text-zinc-950">
+                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
                   <Image className="h-5 w-5" />
                   Generated Images
                 </h3>
-                <Button variant="outline" size="sm" className="text-zinc-900">
+                <Button variant="outline" size="sm">
                   <Edit3 className="h-4 w-4 mr-2" />
                   Edit Image
                 </Button>
               </div>
-              <p className="mb-4 text-zinc-900">AI-generated visual content for your social media posts</p>
+              <p className="text-gray-400 mb-4">AI-generated visual content for your social media posts</p>
               
-              <div className="rounded-lg p-6 text-center border border-gray-700 bg-gray-50">
+              <div className="bg-gray-900/50 rounded-lg p-6 text-center border border-gray-700">
                 <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center mb-4">
                   <Image className="h-16 w-16 text-gray-600" />
                 </div>
                 <div className="flex gap-2 justify-center">
-                  <Button variant="outline" size="sm" className="text-zinc-950">
+                  <Button variant="outline" size="sm">
                     <Edit3 className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" className="text-zinc-950">
+                  <Button variant="outline" size="sm">
                     <Redo className="h-4 w-4 mr-1" />
                     Regenerate
                   </Button>
@@ -231,11 +231,11 @@ const ReviewContent = () => {
             
             <div className="lg:w-80">
               <GlassCard className="p-4 bg-gray-900/30">
-                <h6 className="font-semibold mb-2 flex items-center gap-2 text-zinc-900">
+                <h6 className="font-semibold text-white mb-2 flex items-center gap-2">
                   <Info className="h-4 w-4" />
                   Image Details
                 </h6>
-                <p className="text-sm text-zinc-900">
+                <p className="text-sm text-gray-400">
                   This image was generated using AI based on your content topic and platform requirements.
                 </p>
               </GlassCard>
@@ -245,17 +245,17 @@ const ReviewContent = () => {
 
         {/* Generated Content Section */}
         <GlassCard className="p-6 mb-8">
-          <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-zinc-950">
+          <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Generated Content
           </h3>
-          <p className="mb-6 text-zinc-900">Platform-specific captions and content</p>
+          <p className="text-gray-400 mb-6">Platform-specific captions and content</p>
           
           <div className="space-y-6">
-            {content.map(item => <div key={item.id} className="rounded-lg p-6 border border-gray-700 bg-zinc-100">
+            {content.map(item => <div key={item.id} className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-lg px-3 py-1 border-gray-600 bg-slate-50">
+                    <Badge variant="outline" className="text-lg px-3 py-1 border-gray-600">
                       {getPlatformDisplayName(item.platform)}
                     </Badge>
                     {item.status === 'approved' && <Badge className="bg-green-900/30 text-green-400 border-green-600">
@@ -265,11 +265,11 @@ const ReviewContent = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     {item.status === 'pending' && <>
-                        <Button size="sm" variant="outline" onClick={() => handleReject(item.id)} className="text-red-400 border-red-600 bg-slate-50 rounded-sm">
+                        <Button size="sm" variant="outline" onClick={() => handleReject(item.id)} className="text-red-400 border-red-600 hover:bg-red-900/20">
                           <X className="h-4 w-4 mr-1" />
                           Reject
                         </Button>
-                        <Button size="sm" onClick={() => handleApprove(item.id)} className="border-green-600 text-lime-500 text-base rounded text-justify bg-slate-50">
+                        <Button size="sm" onClick={() => handleApprove(item.id)} className="bg-green-900/30 text-green-400 border-green-600 hover:bg-green-900/50">
                           <Check className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
@@ -280,7 +280,7 @@ const ReviewContent = () => {
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h6 className="flex items-center gap-2 text-neutral-950">
+                      <h6 className="text-white flex items-center gap-2">
                         <MessageSquare className="h-4 w-4" />
                         Caption:
                       </h6>
@@ -297,17 +297,17 @@ const ReviewContent = () => {
                   
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h6 className="flex items-center gap-2 text-neutral-950">
-                        <Hash className="h-4 w-4" />
+                      <h6 className="text-white flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-neutral-950 mx-0 px-0 my-[7px]" />
                         Hashtags:
                       </h6>
-                      {item.status !== 'approved' && <Button size="sm" variant="outline">
+                      {item.status !== 'approved' && <Button size="sm" variant="outline" className="text-neutral-950">
                           <Edit3 className="h-4 w-4 mr-1" />
                           Edit Hashtags
                         </Button>}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {item.hashtags.map((hashtag, index) => <Badge key={index} className="bg-white text-black hover:bg-gray-200 rounded-sm">
+                      {item.hashtags.map((hashtag, index) => <Badge key={index} className="bg-white text-black hover:bg-gray-200">
                           #{hashtag}
                         </Badge>)}
                     </div>
@@ -316,15 +316,15 @@ const ReviewContent = () => {
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-700">
                     <div className="text-center">
                       <div className="text-sm text-gray-400">Engagement</div>
-                      <div className="font-bold text-green-400">{item.engagement_score || 85}%</div>
+                      <div className="font-bold text-neutral-950">{item.engagement_score || 85}%</div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-gray-400">Characters</div>
-                      <div className="font-bold text-white">{item.character_count || item.content.length}</div>
+                      <div className="font-bold text-neutral-800">{item.character_count || item.content.length}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-gray-400">Tone</div>
-                      <div className="font-bold text-white">{item.tone || 'Professional'}</div>
+                      <div className="font-bold text-neutral-950">{item.tone || 'Professional'}</div>
                     </div>
                   </div>
                 </div>
