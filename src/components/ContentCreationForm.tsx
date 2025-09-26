@@ -109,7 +109,7 @@ export const ContentCreationForm = () => {
         topic: topic.trim(),
         platforms: selectedPlatforms,
         tone: contentTone,
-        include_image: false,
+        include_image: true,
         caption_length: 'short',
         hashtag_count: 10
       });
@@ -119,7 +119,7 @@ export const ContentCreationForm = () => {
         showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
         
         setTimeout(() => {
-          navigate('/review-content');
+          navigate('/review-content', { state: { workflowId: response.workflow_id } });
         }, 2000);
       } else {
         setIsLoading(false);

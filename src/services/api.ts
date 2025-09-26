@@ -57,6 +57,9 @@ class APIService {
       method: 'POST',
       body: formData,
       credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      },
       // Let browser set content-type for FormData
     });
 
