@@ -16,7 +16,7 @@ export default function Success({
       <GlassCard className="p-12 text-center max-w-md w-full">
         <div className="mb-6">
           <div className="w-20 h-20 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse bg-green-400">
-            <CheckCircle className="h-10 w-10 text-white bg-green-400" />
+            <CheckCircle className="h-10 w-10 text-white bg-transparent" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{title}</h1>
           <p className="text-gray-600 text-lg">{message}</p>
