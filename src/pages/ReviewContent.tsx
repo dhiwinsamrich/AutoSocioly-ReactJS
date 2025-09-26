@@ -334,15 +334,15 @@ const ReviewContent = () => {
 
         {/* Enhanced Prompt Section */}
         <GlassCard className="p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+          <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-neutral-950">
             <Lightbulb className="h-5 w-5" />
             Enhanced Prompt
           </h3>
-          <p className="text-gray-400 mb-6">AI-enhanced prompt used for content generation</p>
+          <p className="mb-6 text-neutral-800">AI-enhanced prompt used for content generation</p>
           
           <div className="space-y-4">
             <div>
-              <strong className="text-white">Original Prompt:</strong>
+              <strong className="text-white bg-inherit">Original Prompt:</strong>
               <div className="bg-gray-800/50 p-3 rounded-lg mt-2 text-sm text-gray-400 italic border border-gray-700">
                 Social media content about automation tools
               </div>
@@ -360,16 +360,16 @@ const ReviewContent = () => {
 
         {/* Analytics Section */}
         <GlassCard className="p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+          <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-neutral-950">
             <BarChart3 className="h-5 w-5" />
             Content Analytics
           </h3>
-          <p className="text-gray-400 mb-6">Performance predictions and insights</p>
+          <p className="mb-6 text-neutral-800">Performance predictions and insights</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="text-center">
               <div className="text-xs uppercase text-gray-400 mb-1">Engagement Score</div>
-              <div className="text-2xl font-bold text-white">{analytics.engagement_score}</div>
+              <div className="text-2xl font-bold text-red ">{analytics.engagement_score}</div>
             </div>
             <div className="text-center">
               <div className="text-xs uppercase text-gray-400 mb-1">Viral Potential</div>
@@ -382,15 +382,15 @@ const ReviewContent = () => {
           </div>
 
           <div className="border-t border-gray-700 pt-4">
-            <h6 className="text-gray-400 mb-2 flex items-center gap-2">
+            <h6 className="mb-2 flex items-center gap-2 text-neutral-950">
               <Users className="h-4 w-4" />
               Target Audience
             </h6>
-            <p className="text-sm text-gray-300 mb-4">{analytics.target_audience}</p>
+            <p className="text-sm mb-4 text-neutral-900">{analytics.target_audience}</p>
           </div>
 
           <div className="border-t border-gray-700 pt-4">
-            <h6 className="text-gray-400 mb-3 flex items-center gap-2">
+            <h6 className="mb-3 flex items-center gap-2 text-neutral-950">
               <TrendingUp className="h-4 w-4" />
               Content Analysis
             </h6>
@@ -427,8 +427,8 @@ const ReviewContent = () => {
         {content.length > 0 && <GlassCard className="p-6 sticky bottom-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
-                <h3 className="text-lg font-semibold text-white">Ready to Post?</h3>
-                <p className="text-gray-400">
+                <h3 className="text-lg font-semibold text-neutral-950">Ready to Post?</h3>
+                <p className="text-neutral-900">
                   {content.filter(item => item.status === 'approved').length} of {content.length} pieces approved
                 </p>
               </div>
@@ -439,12 +439,12 @@ const ReviewContent = () => {
                   <input type="datetime-local" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="border border-gray-600 bg-gray-800 text-white rounded-md px-3 py-2 text-sm" min={new Date().toISOString().slice(0, 16)} />
                 </div>
                 
-                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate} className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate} className="flex items-center gap-2 text-neutral-950">
                   <Clock className="h-4 w-4" />
                   Schedule
                 </Button>
                 
-                <Button onClick={handlePostAll} className="bg-white text-black hover:bg-gray-200 flex items-center gap-2">
+                <Button onClick={handlePostAll} className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400">
                   <Send className="h-4 w-4" />
                   Post Now
                 </Button>
