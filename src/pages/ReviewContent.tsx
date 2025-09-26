@@ -428,7 +428,7 @@ const ReviewContent = () => {
             </div>
             <div className="text-center">
               <div className="text-xs uppercase text-black mb-1">Viral Potential</div>
-              <div className="text-2xl font-bold text-green">{analytics.viral_potential}</div>
+              <div className="text-2xl font-bold text-green-400 ">{analytics.viral_potential}</div>
             </div>
             <div className="text-center">
               <div className="text-xs uppercase text-black mb-1">Best Time to Post</div>
