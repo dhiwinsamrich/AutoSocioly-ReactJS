@@ -18,8 +18,8 @@ export const Navigation = () => {
     label: 'Accounts'
   }];
   return <nav className="bg-black border-b border-gray-800 z-50">
-      <div className="container mx-auto px-4 bg-zinc-950">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-4 bg-neutral-950">
+        <div className="flex items-center justify-between h-16 bg-neutral-950">
           {/* Brand */}
           <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-gray-300 transition-colors">
             <Rocket className="h-6 w-6" />
