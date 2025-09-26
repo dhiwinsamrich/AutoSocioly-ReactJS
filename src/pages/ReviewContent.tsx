@@ -217,11 +217,11 @@ const ReviewContent = () => {
                   <Image className="h-16 w-16 text-gray-600" />
                 </div>
                 <div className="flex gap-2 justify-center">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="text-neutral-950">
                     <Edit3 className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="text-neutral-950">
                     <Redo className="h-4 w-4 mr-1" />
                     Regenerate
                   </Button>
@@ -231,11 +231,11 @@ const ReviewContent = () => {
             
             <div className="lg:w-80">
               <GlassCard className="p-4 bg-gray-900/30">
-                <h6 className="font-semibold text-white mb-2 flex items-center gap-2">
+                <h6 className="font-semibold mb-2 flex items-center gap-2 text-neutral-950">
                   <Info className="h-4 w-4" />
                   Image Details
                 </h6>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-neutral-800">
                   This image was generated using AI based on your content topic and platform requirements.
                 </p>
               </GlassCard>
