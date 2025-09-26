@@ -201,16 +201,16 @@ const ReviewContent = () => {
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                <h3 className="text-xl font-semibold flex items-center gap-2 text-neutral-950">
                   <Image className="h-5 w-5" />
                   Generated Images
                 </h3>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="text-neutral-950">
                   <Edit3 className="h-4 w-4 mr-2" />
                   Edit Image
                 </Button>
               </div>
-              <p className="text-gray-400 mb-4">AI-generated visual content for your social media posts</p>
+              <p className="mb-4 text-neutral-800">AI-generated visual content for your social media posts</p>
               
               <div className="bg-gray-900/50 rounded-lg p-6 text-center border border-gray-700">
                 <div className="w-full h-64 bg-gray-800 rounded-lg flex items-center justify-center mb-4">
