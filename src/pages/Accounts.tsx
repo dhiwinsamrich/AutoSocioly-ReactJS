@@ -3,10 +3,12 @@ import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import { Plus, Settings, Facebook, Twitter, Instagram, Linkedin, Youtube, Music, CheckCircle, AlertCircle, Clock, Users } from 'lucide-react';
+import { Plus, Settings, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, Users } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXTwitter, faReddit, faPinterest } from '@fortawesome/free-brands-svg-icons';
 interface Account {
   id: string;
   platform: string;
@@ -18,19 +20,19 @@ interface Account {
 }
 const platformIcons = {
   facebook: Facebook,
-  twitter: Twitter,
+  x: () => <FontAwesomeIcon icon={faXTwitter} />,
   instagram: Instagram,
   linkedin: Linkedin,
-  youtube: Youtube,
-  tiktok: Music
+  reddit: () => <FontAwesomeIcon icon={faReddit} />,
+  pinterest: () => <FontAwesomeIcon icon={faPinterest} />
 };
 const platformColors = {
-  facebook: 'text-gray-600',
-  twitter: 'text-gray-700',
-  instagram: 'text-gray-800',
-  linkedin: 'text-gray-900',
-  youtube: 'text-gray-600',
-  tiktok: 'text-gray-700'
+  facebook: 'text-[#1877F2] hover:shadow-[0_0_20px_#1877F2] transition-all duration-300',
+  x: 'text-[#14171A] hover:shadow-[0_0_20px_#14171A] transition-all duration-300',
+  instagram: 'text-[#E4405F] hover:shadow-[0_0_20px_#E4405F] transition-all duration-300',
+  linkedin: 'text-[#0A66C2] hover:shadow-[0_0_20px_#0A66C2] transition-all duration-300',
+  reddit: 'text-[#FF4500] hover:shadow-[0_0_20px_#FF4500] transition-all duration-300',
+  pinterest: 'text-[#E60023] hover:shadow-[0_0_20px_#E60023] transition-all duration-300'
 };
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -71,7 +73,7 @@ export default function Accounts() {
           status: acc.status || (acc.connected === true ? 'active' : 'disconnected'),
           followers: acc.followers || acc.followers_count || '0',
           color: platformColors[acc.platform as keyof typeof platformColors] || 'text-gray-600',
-          icon: platformIcons[acc.platform as keyof typeof platformIcons] || Music
+          icon: platformIcons[acc.platform as keyof typeof platformIcons] || Facebook
         }));
         setAccounts(accountData);
       } else {
@@ -148,7 +150,11 @@ export default function Accounts() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className={`p-2 rounded-lg bg-gray-50 ${platform.color}`}>
-                            <Icon className="h-6 w-6" />
+                            {platform.platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> :
+                             platform.platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> :
+                             platform.platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> :
+                             React.createElement(platform.icon, {className: "h-6 w-6"})
+                            }
                           </div>
                           <div>
                             <h3 className="font-semibold text-gray-900">{platform.platform}</h3>
@@ -184,10 +190,26 @@ export default function Accounts() {
                     <p className="text-gray-500 mb-6">Connect your social media accounts to get started</p>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
-                    {Object.entries(platformIcons).map(([platform, Icon]) => <Button key={platform} variant="outline" onClick={() => handleConnectAccount(platform)} className="flex flex-col items-center space-y-2 p-4 mx-0 my-0 py-[40px]">
-                        <Icon className="h-6 w-6" />
-                        <span className="text-sm capitalize">{platform}</span>
-                      </Button>)}
+                    {Object.entries(platformIcons).map(([platform, Icon]) => {
+                      const colorClass = platformColors[platform as keyof typeof platformColors] || 'text-gray-600';
+                      return (
+                        <Button 
+                          key={platform} 
+                          variant="outline" 
+                          onClick={() => handleConnectAccount(platform)} 
+                          className={`flex flex-col items-center space-y-2 p-4 mx-0 my-0 py-[40px] border-2 ${colorClass}`}
+                        >
+                          <div className="h-6 w-6 flex items-center justify-center">
+                            {platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> :
+                             platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> :
+                             platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> :
+                             React.createElement(Icon, {className: "h-6 w-6"})
+                            }
+                          </div>
+                          <span className="text-sm capitalize">{platform === 'x' ? 'X' : platform}</span>
+                        </Button>
+                      );
+                    })}
                   </div>
                 </div>}
             </div>
