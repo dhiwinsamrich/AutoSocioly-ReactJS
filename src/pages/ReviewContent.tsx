@@ -229,27 +229,17 @@ const ReviewContent = () => {
               </div>
             </div>
             
-            <div className="lg:w-80">
-              <GlassCard className="p-4 bg-gray-900/30">
-                <h6 className="font-semibold mb-2 flex items-center gap-2 text-neutral-950">
-                  <Info className="h-4 w-4" />
-                  Image Details
-                </h6>
-                <p className="text-sm text-neutral-800">
-                  This image was generated using AI based on your content topic and platform requirements.
-                </p>
-              </GlassCard>
-            </div>
+            
           </div>
         </GlassCard>
 
         {/* Generated Content Section */}
         <GlassCard className="p-6 mb-8">
-          <h3 className="text-xl font-semibold text-white mb-2 flex items-center gap-2">
+          <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-neutral-950">
             <FileText className="h-5 w-5" />
             Generated Content
           </h3>
-          <p className="text-gray-400 mb-6">Platform-specific captions and content</p>
+          <p className="mb-6 text-neutral-900">Platform-specific captions and content</p>
           
           <div className="space-y-6">
             {content.map(item => <div key={item.id} className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
