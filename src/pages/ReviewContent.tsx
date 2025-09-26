@@ -55,30 +55,27 @@ const ReviewContent = () => {
   const fetchGeneratedContent = async () => {
     try {
       setLoading(true);
-      
+
       // Get workflow_id from navigation state
       const workflowId = location.state?.workflowId;
-      
       if (!workflowId) {
         showNotification('error', 'No Workflow', 'No workflow ID found. Please create content first.');
         setLoading(false);
         return;
       }
-      
+
       // Fetch real data from backend
       const response = await apiService.getWorkflow(workflowId);
-      
       if (response.success) {
         // The response structure wraps data in a 'workflow' property
         const workflowData = (response as any).workflow || {};
         const platformContent = workflowData.content || {};
         const generatedImages = workflowData.images || [];
-        
+
         // Transform platform content to ContentReview format
         const transformedContent: ContentReview[] = Object.entries(platformContent).map(([platform, contentArray]: [string, any], index) => {
           // Handle array content structure (API returns array with one item)
           const contentItem = Array.isArray(contentArray) && contentArray.length > 0 ? contentArray[0] : contentArray;
-          
           return {
             id: `${platform}-${index}`,
             platform: platform.toLowerCase(),
@@ -91,19 +88,17 @@ const ReviewContent = () => {
             tone: contentItem.tone || workflowData.tone || 'professional'
           };
         });
-        
         setContent(transformedContent);
         setEditingContent(transformedContent.reduce((acc, item) => ({
           ...acc,
           [item.id]: item.content
         }), {}));
-        
+
         // Update analytics if available (handle platform-specific analytics)
         if (workflowData.analytics && Object.keys(workflowData.analytics).length > 0) {
           // Get analytics for the first platform as overall analytics, or use platform-specific
           const firstPlatform = Object.keys(workflowData.analytics)[0];
           const platformAnalytics = firstPlatform ? workflowData.analytics[firstPlatform] : null;
-          
           if (platformAnalytics) {
             setAnalytics({
               engagement_score: platformAnalytics.engagement_score || 'High (85%)',
@@ -164,11 +159,9 @@ const ReviewContent = () => {
     setContent(prev => prev.filter(item => item.id !== id));
     showNotification('info', 'Content Rejected', 'Content has been removed');
   };
-
   const handleEditImage = (id: string) => {
     showNotification('info', 'Image Editing', 'Image editing functionality coming soon!');
   };
-
   const handleRegenerateImage = (id: string) => {
     showNotification('info', 'Image Regeneration', 'Image regeneration functionality coming soon!');
   };
@@ -271,21 +264,13 @@ const ReviewContent = () => {
               <p className="mb-4 text-neutral-800">AI-generated visual content for your social media posts</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {content.map((item) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                {content.map(item => <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="aspect-video bg-gray-200 flex items-center justify-center relative">
-                      {item.media_url ? (
-                        <img 
-                          src={item.media_url} 
-                          alt={`Generated content for ${item.platform}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.nextElementSibling!.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
+                      {item.media_url ? <img src={item.media_url} alt={`Generated content for ${item.platform}`} className="w-full h-full object-cover" onError={e => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling!.classList.remove('hidden');
+                  }} /> : null}
                       <div className={`text-center ${item.media_url ? 'hidden' : ''}`}>
                         <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-2 flex items-center justify-center">
                           <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,22 +282,15 @@ const ReviewContent = () => {
                     </div>
                     <div className="p-4">
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditImage(item.id)}
-                          className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-                        >
+                        <button onClick={() => handleEditImage(item.id)} className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
                           Edit Image
                         </button>
-                        <button
-                          onClick={() => handleRegenerateImage(item.id)}
-                          className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm"
-                        >
+                        <button onClick={() => handleRegenerateImage(item.id)} className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm">
                           Regenerate
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </div>
             </div>
             
@@ -419,14 +397,14 @@ const ReviewContent = () => {
           
           <div className="space-y-4">
             <div>
-              <strong className="text-white bg-inherit">Original Prompt:</strong>
-              <div className="bg-gray-800/50 p-3 rounded-lg mt-2 text-sm text-gray-400 italic border border-gray-700">
+              <strong className="text-black bg-inherit">Original Prompt:</strong>
+              <div className="p-3 rounded-lg mt-2 text-sm text-black italic border border-gray-700 bg-slate-50">
                 Social media content about automation tools
               </div>
             </div>
             <div>
-              <strong className="text-white">Enhanced Prompt:</strong>
-              <div className="bg-gray-800/50 p-3 rounded-lg mt-2 text-white border border-gray-700">
+              <strong className="text-black">Enhanced Prompt:</strong>
+              <div className="p-3 rounded-lg mt-2 text-black border border-gray-700 bg-slate-50">
                 Create engaging social media content about automation tools that highlights time-saving benefits, 
                 maintains professional tone, includes relevant hashtags, and encourages user engagement through 
                 clear calls-to-action while adapting to each platform's specific format and audience expectations.
@@ -445,15 +423,15 @@ const ReviewContent = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="text-center">
-              <div className="text-xs uppercase text-gray-400 mb-1">Engagement Score</div>
-              <div className="text-2xl font-bold text-red ">{analytics.engagement_score}</div>
+              <div className="text-xs uppercase text-black mb-1">Engagement Score</div>
+              <div className="text-2xl font-bold text-black">{analytics.engagement_score}</div>
             </div>
             <div className="text-center">
-              <div className="text-xs uppercase text-gray-400 mb-1">Viral Potential</div>
-              <div className="text-2xl font-bold text-green-400">{analytics.viral_potential}</div>
+              <div className="text-xs uppercase text-black mb-1">Viral Potential</div>
+              <div className="text-2xl font-bold text-green">{analytics.viral_potential}</div>
             </div>
             <div className="text-center">
-              <div className="text-xs uppercase text-gray-400 mb-1">Best Time to Post</div>
+              <div className="text-xs uppercase text-black mb-1">Best Time to Post</div>
               <div className="text-lg font-bold text-blue-400">{analytics.best_posting_time}</div>
             </div>
           </div>
