@@ -118,9 +118,8 @@ export const ContentCreationForm = () => {
         setIsLoading(false);
         showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
         
-        setTimeout(() => {
-          navigate('/review-content', { state: { workflowId: response.workflow_id } });
-        }, 2000);
+        // Navigate immediately to prevent repeated calls
+        navigate('/review-content', { state: { workflowId: response.workflow_id } });
       } else {
         setIsLoading(false);
         showNotification('error', 'Generation Failed', response.message || response.error || 'Failed to generate content. Please try again.');
