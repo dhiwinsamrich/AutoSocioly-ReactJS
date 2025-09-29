@@ -58,6 +58,7 @@ const ReviewContent = () => {
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [isPosting, setIsPosting] = useState(false);
+  const [showPostAnimation, setShowPostAnimation] = useState(false);
   const [analytics, setAnalytics] = useState<Analytics>({
     engagement_score: 'High (85%)',
     viral_potential: 'Medium',
@@ -585,7 +586,7 @@ const handlePostAll = async () => {
       <Navigation />
       <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
-        <div className="text-center mb-8 pt-20 bg-neutral-950">
+        <div className="text-center mb-8 pt-20 bg-neutral-950 smooth-fade-in">
           <h1 className="text-4xl font-bold text-white mb-2 flex items-center justify-center gap-3">
             <FileText className="h-10 w-10 text-white" />
             Content Review
@@ -594,7 +595,7 @@ const handlePostAll = async () => {
         </div>
 
         {/* Generated Image Section */}
-        <GlassCard className="p-6 mb-8">
+        <GlassCard className="p-6 mb-8 smooth-fade-in-delayed">
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1">
               <div className="flex justify-between items-center mb-4">
@@ -884,11 +885,17 @@ const handlePostAll = async () => {
                   disabled={isPosting}
                   className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  {isPosting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                      Posting...
-                    </>
+                  {showPostAnimation ? (
+                    <div className="post-loader">
+                      <span>Posting</span>
+                      <div className="post-words">
+                        <span className="post-word">to Facebook...</span>
+                        <span className="post-word">to Instagram...</span>
+                        <span className="post-word">to Twitter...</span>
+                        <span className="post-word">to LinkedIn...</span>
+                        <span className="post-word">Successfully!</span>
+                      </div>
+                    </div>
                   ) : (
                     <>
                       <Send className="h-4 w-4" />
