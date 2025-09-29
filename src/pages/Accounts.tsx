@@ -126,7 +126,7 @@ export default function Accounts() {
   return <div className="min-h-screen bg-neutral-950">
       <Navigation />
       
-      <div className="container mx-auto px-4 bg-zinc-950 py-px">
+      <div className="container mx-auto px-4 bg-zinc-950 py-[6px]">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Social Media Accounts</h1>
           <p className="text-white/80">Connect and manage your social media platforms</p>
