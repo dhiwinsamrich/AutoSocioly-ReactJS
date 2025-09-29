@@ -57,6 +57,7 @@ const ReviewContent = () => {
   const [editingContent, setEditingContent] = useState<{ [key: string]: string }>({});
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
   const [analytics, setAnalytics] = useState<Analytics>({
     engagement_score: 'High (85%)',
     viral_potential: 'Medium',
@@ -430,6 +431,7 @@ const ReviewContent = () => {
 
   // In ReviewContent.tsx - Fix handlePostAll function
 const handlePostAll = async () => {
+  setIsPosting(true);  // ADD this line
   const approvedContent = content.filter(item => item.status === 'approved');
   if (approvedContent.length === 0) {
     showNotification('info', 'No Content', 'Please approve at least one piece of content');
@@ -524,7 +526,9 @@ const handlePostAll = async () => {
   } catch (error: any) {
     console.error('Error posting content:', error);
     showNotification('error', 'Posting Failed', `Failed to post content: ${error.message}. Please try again.`);
-  }
+  }finally {
+  setIsPosting(false);
+}
 };
 
   const handleSchedule = async () => {
@@ -607,8 +611,10 @@ const handlePostAll = async () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {generatedImages.length > 0 ? generatedImages.map((imageUrl, index) => <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div className="aspect-video bg-gray-200 flex items-center justify-center relative">
-                      {imageUrl ? <img src={apiService.getImageUrl(imageUrl)} alt={`Generated image ${index + 1}`} className="w-full h-full object-contain" onError={e => {
+                    <div className="aspect-video bg-gray-200 flex items-center justify-center relative overflow-hidden">
+                      {imageUrl ? <img 
+                        src={imageUrl.startsWith('http') ? imageUrl : apiService.getImageUrl(imageUrl)} 
+                        alt={`Generated image ${index + 1}`} className="w-full h-full object-cover" onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     target.nextElementSibling!.classList.remove('hidden');
@@ -873,9 +879,22 @@ const handlePostAll = async () => {
                   Schedule
                 </Button>
                 
-                <Button onClick={handlePostAll} className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400">
-                  <Send className="h-4 w-4" />
-                  Post Now
+                <Button 
+                  onClick={handlePostAll} 
+                  disabled={isPosting}
+                  className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPosting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Posting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Post Now
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/api';
 import { useNotification } from '@/hooks/useNotification';
+// import { logger } from '@/utils/logger';
 interface DashboardMetrics {
   totalPosts: number;
   engagementRate: number;
@@ -64,8 +65,32 @@ export default function Dashboard() {
           scheduledPosts: scheduledPostsResponse.data?.scheduled_posts?.length || scheduledPostsResponse.data?.posts?.length || 0
         });
 
+        let recentActivitiesData = [];
+          try {
+            const activitiesResponse = await fetch('http://localhost:8000/api/posting/recent-activity?limit=10', {
+              credentials: 'include'
+            });
+            if (activitiesResponse.ok) {
+              const activitiesJson = await activitiesResponse.json();
+              if (activitiesJson.success && activitiesJson.activities) {
+                recentActivitiesData = activitiesJson.activities;
+              }
+            }
+          } catch (error) {
+            // logger.error('Failed to fetch recent activities:', error);
+          }
+
         // Generate recent activity from posting history
-        const activity: RecentActivity[] = [];
+        const activity: RecentActivity[] = recentActivitiesData.length > 0 
+          ? recentActivitiesData.map((act: any, index: number) => ({
+              id: act.id || `redis-${index}`,
+              action: act.status === 'success' ? 'Content posted' : 'Post failed',
+              platform: act.platform || 'Unknown',
+              time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
+              status: act.status || 'success'
+            }))
+          : [];
+        if (activity.length === 0) {
         const history = postingHistoryResponse.data?.history || postingHistoryResponse.data?.posts || [];
         if (Array.isArray(history)) {
           history.slice(0, 5).forEach((post: any, index: number) => {
@@ -78,6 +103,7 @@ export default function Dashboard() {
             });
           });
         }
+      }
         const scheduled = scheduledPostsResponse.data?.scheduled_posts || scheduledPostsResponse.data?.posts || [];
         if (Array.isArray(scheduled)) {
           scheduled.slice(0, 3).forEach((post: any, index: number) => {
