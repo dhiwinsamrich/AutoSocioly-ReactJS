@@ -650,10 +650,10 @@ const handlePostAll = async () => {
           <p className="mb-6 text-neutral-900">Platform-specific captions and content</p>
           
           <div className="space-y-6">
-            {content.map(item => <div key={item.id} className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+            {content.map(item => <div key={item.id} className="bg-white rounded-lg p-6 border border-gray-700">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="text-lg px-3 py-1 border-gray-600">
+                    <Badge variant="outline" className="text-lg px-3 py-1 border-white">
                       {getPlatformDisplayName(item.platform)}
                     </Badge>
                     {item.status === 'approved' && <Badge className="bg-green-900/30 text-green-400 border-green-600">
@@ -667,7 +667,7 @@ const handlePostAll = async () => {
                           <X className="h-4 w-4 mr-1" />
                           Reject
                         </Button>
-                        <Button size="sm" onClick={() => handleApprove(item.id)} className="bg-green-900/30 text-green-400 border-green-600 hover:bg-green-900/50">
+                        <Button size="sm" onClick={() => handleApprove(item.id)} className=" text-green-400 border-green-600 hover:bg-green-900/50">
                           <Check className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
@@ -683,7 +683,7 @@ const handlePostAll = async () => {
                         Caption:
                       </h6>
                       {item.status !== 'approved' && <Button size="sm" variant="outline" onClick={() => handleEdit(item.id)}>
-                          <Edit3 className="h-4 w-4 mr-1" />
+                          <Edit3 className="h-4 w-4 text-neutral-950" />
                           Edit Caption
                         </Button>}
                     </div>
@@ -719,15 +719,15 @@ const handlePostAll = async () => {
                   
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-700">
                     <div className="text-center">
-                      <div className="text-sm text-gray-400">Engagement</div>
+                      <div className="text-sm text-neutral-950">Engagement</div>
                       <div className="font-bold text-neutral-950">{item.engagement_score || 85}%</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-gray-400">Characters</div>
-                      <div className="font-bold text-neutral-800">{item.character_count || item.content.length}</div>
+                      <div className="text-sm text-neutral-950">Characters</div>
+                      <div className="font-bold text-neutral-950">{item.character_count || item.content.length}</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-sm text-gray-400">Tone</div>
+                      <div className="text-sm text-neutral-950">Tone</div>
                       <div className="font-bold text-neutral-950">{item.tone || 'Professional'}</div>
                     </div>
                   </div>
