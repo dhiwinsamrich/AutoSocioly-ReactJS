@@ -123,10 +123,10 @@ export default function Accounts() {
         </div>
       </div>;
   }
-  return <div className="min-h-screen">
+  return <div className="min-h-screen bg-neutral-950">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8 bg-zinc-950">
+      <div className="container mx-auto px-4 bg-zinc-950 py-px">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Social Media Accounts</h1>
           <p className="text-white/80">Connect and manage your social media platforms</p>
@@ -150,11 +150,9 @@ export default function Accounts() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className={`p-2 rounded-lg bg-gray-50 ${platform.color}`}>
-                            {platform.platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> :
-                             platform.platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> :
-                             platform.platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> :
-                             React.createElement(platform.icon, {className: "h-6 w-6"})
-                            }
+                            {platform.platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> : platform.platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> : platform.platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> : React.createElement(platform.icon, {
+                        className: "h-6 w-6"
+                      })}
                           </div>
                           <div>
                             <h3 className="font-semibold text-gray-900">{platform.platform}</h3>
@@ -183,7 +181,7 @@ export default function Accounts() {
                           </Button>}
                       </div>
                     </div>;
-            }) : <div className="col-span-full text-center py-12">
+            }) : <div className="col-span-full text-center my-0 py-0">
                   <div className="text-gray-500 mb-4">
                     <Users className="h-12 w-12 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No Connected Accounts</h3>
@@ -191,27 +189,66 @@ export default function Accounts() {
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
                     {Object.entries(platformIcons).map(([platform, Icon]) => {
-                      const colorClass = platformColors[platform as keyof typeof platformColors] || 'text-gray-600';
-                      return (
-                        <Button 
-                          key={platform} 
-                          variant="outline" 
-                          onClick={() => handleConnectAccount(platform)} 
-                          className={`flex flex-col items-center space-y-2 p-4 mx-0 my-0 py-[40px] border-2 ${colorClass}`}
-                        >
+                  const colorClass = platformColors[platform as keyof typeof platformColors] || 'text-gray-600';
+                  return <Button key={platform} variant="outline" onClick={() => handleConnectAccount(platform)} className={`flex flex-col items-center space-y-2 p-4 mx-0 my-0 py-[40px] border-2 ${colorClass}`}>
                           <div className="h-6 w-6 flex items-center justify-center">
-                            {platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> :
-                             platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> :
-                             platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> :
-                             React.createElement(Icon, {className: "h-6 w-6"})
-                            }
+                            {platform === 'x' ? <FontAwesomeIcon icon={faXTwitter} className="h-6 w-6" /> : platform === 'reddit' ? <FontAwesomeIcon icon={faReddit} className="h-6 w-6" /> : platform === 'pinterest' ? <FontAwesomeIcon icon={faPinterest} className="h-6 w-6" /> : React.createElement(Icon, {
+                        className: "h-6 w-6"
+                      })}
                           </div>
                           <span className="text-sm capitalize">{platform === 'x' ? 'X' : platform}</span>
-                        </Button>
-                      );
-                    })}
+                        </Button>;
+                })}
                   </div>
                 </div>}
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Account Statistics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <GlassCard className="p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Publishing Schedule</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-900">Auto-posting</span>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-900">Cross-platform sharing</span>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-900">Analytics tracking</span>
+                <Switch defaultChecked />
+              </div>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Account Health</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Active connections</span>
+                <span className="font-semibold text-black">
+                  {accounts.filter(acc => acc.connected).length}/{accounts.length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Pending approvals</span>
+                <span className="font-semibold text-gray-600">
+                  {accounts.filter(acc => acc.status === 'pending').length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Last sync</span>
+                <span className="font-semibold text-gray-900">Just now</span>
+              </div>
+              <div className="pt-4">
+                <Button variant="outline" className="w-full">
+                  Refresh All Connections
+                </Button>
+              </div>
             </div>
           </GlassCard>
         </div>
