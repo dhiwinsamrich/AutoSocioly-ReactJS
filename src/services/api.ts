@@ -9,6 +9,9 @@ interface APIResponse {
   history?: any[];
   scheduled_posts?: any[];
   accounts?: any;
+  publicUrl?: string;
+  mediaItems?: any[];
+  scheduledFor?: string;
 }
 
 class APIService {
@@ -150,7 +153,7 @@ class APIService {
       // Check if this is the new format with content and platforms array
       if (data.content && data.platforms && Array.isArray(data.platforms)) {
         // New format: direct posting with content and platforms
-        const requestData = {
+        const requestData: any = {
           content: data.content,
           platforms: data.platforms,
           publishNow: data.publishNow !== undefined ? data.publishNow : true,
@@ -207,7 +210,7 @@ class APIService {
       // Check if this is workflow-based posting format
       else if (data.workflow_id || data.platform_content) {
         // Legacy workflow format handling
-        const requestData = {
+        const requestData: any = {
           workflow_id: data.workflow_id,
           platforms: data.platforms || [],
           platform_content: data.platform_content || {},
@@ -264,7 +267,7 @@ class APIService {
         const hashtagsText = hashtags.map(tag => `#${tag}`).join(' ');
         const fullContent = content + (hashtagsText ? `\n\n${hashtagsText}` : '');
 
-        const requestData = {
+        const requestData: any = {
           content: fullContent,
           platforms: [{
             platform: data.platform.toLowerCase(),

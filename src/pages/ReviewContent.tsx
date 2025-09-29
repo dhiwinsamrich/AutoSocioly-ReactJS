@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { apiService } from '@/services/api';
 import { GlassCard } from '@/components/GlassCard';
 import { Navigation } from '@/components/Navigation';
@@ -69,6 +71,11 @@ const ReviewContent = () => {
   const [workflowData, setWorkflowData] = useState<any>(null);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [workflowId, setWorkflowId] = useState<string>('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [hashtagDialogOpen, setHashtagDialogOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string>('');
+  const [tempEditContent, setTempEditContent] = useState<string>('');
+  const [tempHashtags, setTempHashtags] = useState<string>('');
 
   useEffect(() => {
     fetchGeneratedContent();
@@ -411,6 +418,47 @@ const ReviewContent = () => {
     showNotification('success', 'Content Updated', 'Content has been updated');
   };
 
+  const handleEditCaption = (id: string) => {
+    const item = content.find(c => c.id === id);
+    if (item) {
+      setEditingItemId(id);
+      setTempEditContent(item.content);
+      setEditDialogOpen(true);
+    }
+  };
+
+  const handleEditHashtags = (id: string) => {
+    const item = content.find(c => c.id === id);
+    if (item) {
+      setEditingItemId(id);
+      setTempHashtags(item.hashtags.join(', '));
+      setHashtagDialogOpen(true);
+    }
+  };
+
+  const handleSaveCaption = () => {
+    setContent(prev => prev.map(item => item.id === editingItemId ? {
+      ...item,
+      content: tempEditContent
+    } : item));
+    setEditDialogOpen(false);
+    setEditingItemId('');
+    setTempEditContent('');
+    showNotification('success', 'Caption Updated', 'Caption has been updated successfully');
+  };
+
+  const handleSaveHashtags = () => {
+    const hashtagArray = tempHashtags.split(',').map(tag => tag.trim().replace('#', '')).filter(tag => tag.length > 0);
+    setContent(prev => prev.map(item => item.id === editingItemId ? {
+      ...item,
+      hashtags: hashtagArray
+    } : item));
+    setHashtagDialogOpen(false);
+    setEditingItemId('');
+    setTempHashtags('');
+    showNotification('success', 'Hashtags Updated', 'Hashtags have been updated successfully');
+  };
+
   const handleReject = (id: string) => {
     setContent(prev => prev.filter(item => item.id !== id));
     showNotification('info', 'Content Rejected', 'Content has been removed');
@@ -682,8 +730,8 @@ const handlePostAll = async () => {
                         <MessageSquare className="h-4 w-4" />
                         Caption:
                       </h6>
-                      {item.status !== 'approved' && <Button size="sm" variant="outline" onClick={() => handleEdit(item.id)}>
-                          <Edit3 className="h-4 w-4 text-neutral-950" />
+                      {item.status !== 'approved' && <Button size="sm" variant="outline" onClick={() => handleEditCaption(item.id)} className="text-neutral-950 border-neutral-950 hover:bg-neutral-100">
+                          <Edit3 className="h-4 w-4 mr-1" />
                           Edit Caption
                         </Button>}
                     </div>
@@ -705,7 +753,7 @@ const handlePostAll = async () => {
                         <Hash className="h-4 w-4 text-neutral-950 mx-0 px-0 my-[7px]" />
                         Hashtags:
                       </h6>
-                      {item.status !== 'approved' && <Button size="sm" variant="outline" className="text-neutral-950">
+                      {item.status !== 'approved' && <Button size="sm" variant="outline" onClick={() => handleEditHashtags(item.id)} className="text-neutral-950 border-neutral-950 hover:bg-neutral-100">
                           <Edit3 className="h-4 w-4 mr-1" />
                           Edit Hashtags
                         </Button>}
@@ -877,6 +925,59 @@ const handlePostAll = async () => {
             </div>
           </GlassCard>}
       </div>
+
+      {/* Edit Caption Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Caption</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={tempEditContent}
+              onChange={(e) => setTempEditContent(e.target.value)}
+              placeholder="Enter your caption..."
+              className="min-h-[120px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveCaption}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Hashtags Dialog */}
+      <Dialog open={hashtagDialogOpen} onOpenChange={setHashtagDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Hashtags</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              value={tempHashtags}
+              onChange={(e) => setTempHashtags(e.target.value)}
+              placeholder="Enter hashtags separated by commas (e.g., marketing, social, growth)"
+              className="w-full"
+            />
+            <p className="text-sm text-muted-foreground">
+              Separate hashtags with commas. Don't include the # symbol.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setHashtagDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveHashtags}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>;
 }
 
