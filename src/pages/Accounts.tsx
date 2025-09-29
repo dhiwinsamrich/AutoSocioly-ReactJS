@@ -215,54 +215,6 @@ export default function Accounts() {
             </div>
           </GlassCard>
         </div>
-
-        {/* Account Statistics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Publishing Schedule</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-900">Auto-posting</span>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-900">Cross-platform sharing</span>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <span className="font-medium text-gray-900">Analytics tracking</span>
-                <Switch defaultChecked />
-              </div>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Account Health</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Active connections</span>
-                <span className="font-semibold text-black">
-                  {accounts.filter(acc => acc.connected).length}/{accounts.length}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Pending approvals</span>
-                <span className="font-semibold text-gray-600">
-                  {accounts.filter(acc => acc.status === 'pending').length}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Last sync</span>
-                <span className="font-semibold text-gray-900">Just now</span>
-              </div>
-              <div className="pt-4">
-                <Button variant="outline" className="w-full">
-                  Refresh All Connections
-                </Button>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
       </div>
     </div>;
 }

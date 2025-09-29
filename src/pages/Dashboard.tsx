@@ -110,52 +110,6 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
           <p className="text-white/80">Monitor your social media performance and manage content</p>
         </div>
-
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[{
-          title: 'Total Posts',
-          value: metrics.totalPosts.toString(),
-          change: '+12%',
-          icon: BarChart3,
-          color: 'text-gray-600'
-        }, {
-          title: 'Engagement Rate',
-          value: `${metrics.engagementRate}%`,
-          change: '+2.1%',
-          icon: TrendingUp,
-          color: 'text-gray-700'
-        }, {
-          title: 'Followers',
-          value: metrics.totalFollowers.toLocaleString(),
-          change: '+5.7%',
-          icon: Users,
-          color: 'text-gray-800'
-        }, {
-          title: 'Scheduled',
-          value: metrics.scheduledPosts.toString(),
-          change: '+3',
-          icon: Calendar,
-          color: 'text-gray-900'
-        }].map((metric, index) => {
-          const Icon = metric.icon;
-          return <GlassCard key={index} hover className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-2 rounded-lg bg-white/10 ${metric.color}`}>
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-                    {metric.change}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</p>
-                  <p className="text-sm text-gray-600">{metric.title}</p>
-                </div>
-              </GlassCard>;
-        })}
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
           <div className="lg:col-span-1">
@@ -166,15 +120,7 @@ export default function Dashboard() {
                 label: 'Create Content',
                 icon: Plus,
                 action: () => navigate('/')
-              }, {
-                label: 'Schedule Post',
-                icon: Calendar,
-                action: () => navigate('/scheduled-posts')
-              }, {
-                label: 'View Analytics',
-                icon: BarChart3,
-                action: () => navigate('/analytics')
-              }, {
+              },{
                 label: 'Manage Accounts',
                 icon: Users,
                 action: () => navigate('/accounts')
