@@ -23,7 +23,7 @@ export const Navigation = () => {
           {/* Brand */}
           <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-gray-300 transition-colors">
             <Rocket className="h-6 w-6" />
-            <span>GetLate Social</span>
+            <span>AutoSocioly</span>
           </NavLink>
 
           {/* Desktop Navigation */}
