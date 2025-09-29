@@ -882,7 +882,7 @@ const handlePostAll = async () => {
                 <Button 
                   onClick={handlePostAll} 
                   disabled={isPosting}
-                  className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   {isPosting ? (
                     <>

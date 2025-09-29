@@ -16,7 +16,6 @@ export const PageTransition = ({ children }: PageTransitionProps) => {
   useEffect(() => {
     if (location !== displayLocation) {
       setTransitionStage("fadeOut");
-      setIsLoading(true);
     }
   }, [location, displayLocation]);
 
@@ -24,30 +23,22 @@ export const PageTransition = ({ children }: PageTransitionProps) => {
     if (transitionStage === "fadeOut") {
       setDisplayLocation(location);
       setTransitionStage("fadeIn");
-      
-      // Simulate loading time for smoother experience
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
     }
   };
 
   return (
-    <>
-      <PageLoader isVisible={isLoading} />
-      <div
-        className={cn(
-          "transition-all duration-500 ease-in-out",
-          transitionStage === "fadeOut" 
-            ? "opacity-0 transform scale-95" 
-            : "opacity-100 transform scale-100"
-        )}
-        onTransitionEnd={onAnimationEnd}
-      >
-        <div key={displayLocation.pathname}>
-          {children}
-        </div>
+    <div
+      className={cn(
+        "transition-all duration-300 ease-in-out",
+        transitionStage === "fadeOut" 
+          ? "opacity-0" 
+          : "opacity-100"
+      )}
+      onTransitionEnd={onAnimationEnd}
+    >
+      <div key={displayLocation.pathname}>
+        {children}
       </div>
-    </>
+    </div>
   );
 };
