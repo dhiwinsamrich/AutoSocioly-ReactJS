@@ -102,10 +102,10 @@ export default function Dashboard() {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen">
+  return <div className="min-h-screen bg-neutral-950">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8 bg-zinc-950">
+      <div className="container mx-auto px-4 bg-zinc-950 py-0">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
           <p className="text-white/80">Monitor your social media performance and manage content</p>
@@ -120,7 +120,7 @@ export default function Dashboard() {
                 label: 'Create Content',
                 icon: Plus,
                 action: () => navigate('/')
-              },{
+              }, {
                 label: 'Manage Accounts',
                 icon: Users,
                 action: () => navigate('/accounts')
