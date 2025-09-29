@@ -609,11 +609,11 @@ const handlePostAll = async () => {
               </div>
               <p className="mb-4 text-neutral-800">AI-generated visual content for your social media posts</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
                 {generatedImages.length > 0 ? generatedImages.map((imageUrl, index) => <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="aspect-video bg-gray-200 flex items-center justify-center relative overflow-hidden">
                       {imageUrl ? <img 
-                        src={imageUrl.startsWith('http') ? imageUrl : apiService.getImageUrl(imageUrl)} 
+                        src={imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`}
                         alt={`Generated image ${index + 1}`} className="w-full h-full object-cover" onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';

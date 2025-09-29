@@ -96,23 +96,16 @@ class APIService {
     }
   }
 
-  // Content creation endpoint with FormData support
+  // Content creation endpoint with JSON support
   async createContent(data: Record<string, any>): Promise<APIResponse> {
-    const formData = new FormData();
-    Object.keys(data).forEach(key => {
-      if (data[key] !== undefined && data[key] !== null) {
-        formData.append(key, data[key]);
-      }
-    });
-    
-    const response = await fetch(`${this.baseUrl}/create-content`, {
+    const response = await fetch(`${this.baseUrl}/api/create-content`, {
       method: 'POST',
-      body: formData,
-      credentials: 'include',
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      // Let browser set content-type for FormData
+      credentials: 'include',
+      body: JSON.stringify(data)
     });
 
     if (!response.ok) {
