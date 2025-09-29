@@ -20,6 +20,10 @@ interface RecentActivity {
   platform: string;
   time: string;
   status: 'success' | 'pending' | 'error';
+  content?: string;
+  scheduledTime?: string;
+  createdAt?: string;
+  author?: string;
 }
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -35,6 +39,7 @@ export default function Dashboard() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAllActivities, setShowAllActivities] = useState(false);
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -87,32 +92,43 @@ export default function Dashboard() {
               action: act.status === 'success' ? 'Content posted' : 'Post failed',
               platform: act.platform || 'Unknown',
               time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
-              status: act.status || 'success'
+              status: act.status || 'success',
+              content: act.content || 'Content preview not available',
+              scheduledTime: act.scheduled_time,
+              createdAt: act.created_at || act.timestamp,
+              author: act.author || 'System'
             }))
           : [];
         if (activity.length === 0) {
         const history = postingHistoryResponse.data?.history || postingHistoryResponse.data?.posts || [];
         if (Array.isArray(history)) {
-          history.slice(0, 5).forEach((post: any, index: number) => {
+          history.slice(0, 10).forEach((post: any, index: number) => {
             activity.push({
               id: `post-${index}`,
               action: 'Content posted',
               platform: post.platform || 'Unknown',
               time: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Recently',
-              status: 'success'
+              status: 'success',
+              content: post.content || 'Posted content',
+              createdAt: post.created_at,
+              author: post.author || 'User'
             });
           });
         }
       }
         const scheduled = scheduledPostsResponse.data?.scheduled_posts || scheduledPostsResponse.data?.posts || [];
         if (Array.isArray(scheduled)) {
-          scheduled.slice(0, 3).forEach((post: any, index: number) => {
+          scheduled.slice(0, 5).forEach((post: any, index: number) => {
             activity.push({
               id: `scheduled-${index}`,
               action: 'Post scheduled',
               platform: post.platform || 'Unknown',
               time: post.scheduled_time ? new Date(post.scheduled_time).toLocaleDateString() : 'Upcoming',
-              status: 'pending'
+              status: 'pending',
+              content: post.content || 'Scheduled content',
+              scheduledTime: post.scheduled_time,
+              createdAt: post.created_at,
+              author: post.author || 'User'
             });
           });
         }
@@ -166,26 +182,73 @@ export default function Dashboard() {
             <GlassCard className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900">Recent Activity</h3>
-                <Button variant="ghost" size="sm" className="text-black hover:text-gray-800">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-black hover:text-gray-800"
+                  onClick={() => setShowAllActivities(!showAllActivities)}
+                >
                   <Eye className="mr-2 h-4 w-4" />
-                  View All
+                  {showAllActivities ? 'Show Less' : 'View All'}
                 </Button>
               </div>
               
               <div className="space-y-4">
-                {recentActivity.map(activity => <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-2 h-2 rounded-full ${activity.status === 'success' ? 'bg-black' : 'bg-gray-500'}`} />
-                      <div>
-                        <p className="font-medium text-gray-900">{activity.action}</p>
-                        <p className="text-sm text-gray-600">{activity.platform}</p>
+                {(showAllActivities ? recentActivity : recentActivity.slice(0, 4)).map(activity => (
+                  <div key={activity.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 pr-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge 
+                            variant={activity.status === 'success' ? 'default' : activity.status === 'pending' ? 'secondary' : 'destructive'}
+                            className={`text-xs ${
+                              activity.status === 'success' 
+                                ? 'bg-green-100 text-green-800 border-green-200' 
+                                : activity.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                : 'bg-red-100 text-red-800 border-red-200'
+                            }`}
+                          >
+                            {activity.status === 'success' ? 'Published' : activity.status === 'pending' ? 'Scheduled' : 'Failed'}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-900 font-medium text-sm mb-2 line-clamp-2">
+                          {activity.content || activity.action}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-gray-600 mb-2">
+                          {activity.scheduledTime && (
+                            <span>scheduled: {new Date(activity.scheduledTime).toLocaleDateString()} {new Date(activity.scheduledTime).toLocaleTimeString()}</span>
+                          )}
+                          {activity.createdAt && (
+                            <span>created: {new Date(activity.createdAt).toLocaleDateString()}</span>
+                          )}
+                          {activity.author && (
+                            <span>by: {activity.author}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-700">platforms:</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-blue-600 font-medium capitalize">{activity.platform}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+                          <span className="sr-only">Delete</span>
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <Clock className="h-4 w-4" />
-                      <span>{activity.time}</span>
-                    </div>
-                  </div>)}
+                  </div>
+                ))}
+                {recentActivity.length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No recent activities found</p>
+                  </div>
+                )}
               </div>
             </GlassCard>
           </div>
