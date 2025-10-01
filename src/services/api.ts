@@ -6,6 +6,7 @@ interface APIResponse {
   error?: string;
   workflow_id?: string;
   message?: string;
+  image_url?: string;
   history?: any[];
   scheduled_posts?: any[];
   accounts?: any;
@@ -96,47 +97,96 @@ class APIService {
     }
   }
 
-  // Content creation endpoint with JSON support
+  // Content creation endpoint with JSON support and file upload
   async createContent(data: Record<string, any>): Promise<APIResponse> {
-    const response = await fetch(`${this.baseUrl}/api/create-content`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      // Try to get error message from response
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (jsonError) {
-        // If response is not JSON, get text
-        try {
-          const textError = await response.text();
-          errorMessage = textError || errorMessage;
-        } catch (textError) {
-          // Fallback to status error
+    // Check if we have a reference image to upload
+    if (data.reference_image && data.use_reference_image) {
+      const formData = new FormData();
+      
+      // Add all data fields except the file
+      Object.keys(data).forEach(key => {
+        if (key !== 'reference_image') {
+          formData.append(key, data[key]);
         }
+      });
+      
+      // Add the reference image file
+      formData.append('reference_image', data.reference_image);
+      
+      const response = await fetch(`${this.baseUrl}/api/create-content`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (jsonError) {
+          try {
+            const textError = await response.text();
+            errorMessage = textError || errorMessage;
+          } catch (textError) {
+            // Fallback to status error
+          }
+        }
+        throw new Error(errorMessage);
       }
-      throw new Error(errorMessage);
-    }
-    
-    // Try to parse JSON response
-    try {
-      return await response.json();
-    } catch (jsonError) {
-      console.error('Failed to parse JSON response:', jsonError);
-      // If JSON parsing fails, return a success response with default data
-      return {
-        success: true,
-        message: 'Content created successfully',
-        workflow_id: 'default-workflow-id'
-      };
+      
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        return {
+          success: true,
+          message: 'Content created successfully',
+          workflow_id: 'default-workflow-id'
+        };
+      }
+    } else {
+      // Regular JSON request without file upload
+      const response = await fetch(`${this.baseUrl}/api/create-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        // Try to get error message from response
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (jsonError) {
+          // If response is not JSON, get text
+          try {
+            const textError = await response.text();
+            errorMessage = textError || errorMessage;
+          } catch (textError) {
+            // Fallback to status error
+          }
+        }
+        throw new Error(errorMessage);
+      }
+      
+      // Try to parse JSON response
+      try {
+        return await response.json();
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        // If JSON parsing fails, return a success response with default data
+        return {
+          success: true,
+          message: 'Content created successfully',
+          workflow_id: 'default-workflow-id'
+        };
+      }
     }
   }
 
@@ -414,6 +464,66 @@ class APIService {
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  // Regenerate image
+  async regenerateImage(data: { workflow_id: string; image_id: string; new_prompt?: string }): Promise<APIResponse> {
+    const response = await fetch(`${this.baseUrl}/api/regenerate-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (jsonError) {
+        try {
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
+        } catch (textError) {
+          // Fallback to status error
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    return await response.json();
+  }
+
+  // Get recent activities
+  async getRecentActivities(limit: number = 10): Promise<APIResponse> {
+    const response = await fetch(`${this.baseUrl}/api/posting/recent-activity?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (jsonError) {
+        try {
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
+        } catch (textError) {
+          // Fallback to status error
+        }
+      }
+      throw new Error(errorMessage);
     }
     
     return await response.json();

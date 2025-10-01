@@ -50,10 +50,24 @@ export default function Dashboard() {
       // Fetch accounts data
       const accountsResponse = await apiService.getAccounts();
       console.log('Accounts response:', accountsResponse);
-      const postingHistoryResponse = await apiService.getPostingHistory();
-      console.log('Posting history response:', postingHistoryResponse);
-      const scheduledPostsResponse = await apiService.getScheduledPosts();
-      console.log('Scheduled posts response:', scheduledPostsResponse);
+      
+      // Fetch posting history with error handling
+      let postingHistoryResponse = { data: { history: [], posts: [] } };
+      try {
+        postingHistoryResponse = await apiService.getPostingHistory();
+        console.log('Posting history response:', postingHistoryResponse);
+      } catch (error) {
+        console.error('Failed to fetch posting history:', error);
+      }
+      
+      // Fetch scheduled posts with error handling
+      let scheduledPostsResponse = { data: { scheduled_posts: [], posts: [] } };
+      try {
+        scheduledPostsResponse = await apiService.getScheduledPosts();
+        console.log('Scheduled posts response:', scheduledPostsResponse);
+      } catch (error) {
+        console.error('Failed to fetch scheduled posts:', error);
+      }
       if (accountsResponse.success && accountsResponse.accounts) {
         const accounts = Array.isArray(accountsResponse.accounts) ? accountsResponse.accounts : [];
         setConnectedAccounts(accounts.filter((acc: any) => acc.connected));
@@ -72,17 +86,13 @@ export default function Dashboard() {
 
         let recentActivitiesData = [];
           try {
-            const activitiesResponse = await fetch('http://localhost:8000/api/posting/recent-activity?limit=10', {
-              credentials: 'include'
-            });
-            if (activitiesResponse.ok) {
-              const activitiesJson = await activitiesResponse.json();
-              if (activitiesJson.success && activitiesJson.activities) {
-                recentActivitiesData = activitiesJson.activities;
-              }
+            const activitiesResponse = await apiService.getRecentActivities(10);
+            console.log('Recent activities response:', activitiesResponse);
+            if (activitiesResponse.success && activitiesResponse.activities) {
+              recentActivitiesData = activitiesResponse.activities;
             }
           } catch (error) {
-            // logger.error('Failed to fetch recent activities:', error);
+            console.error('Failed to fetch recent activities:', error);
           }
 
         // Generate recent activity from posting history
@@ -93,29 +103,32 @@ export default function Dashboard() {
               platform: act.platform || 'Unknown',
               time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
               status: act.status || 'success',
-              content: act.content || 'Content preview not available',
+              content: act.content_preview || act.content || 'Content preview not available',
               scheduledTime: act.scheduled_time,
               createdAt: act.created_at || act.timestamp,
               author: act.author || 'System'
             }))
           : [];
+        // If no recent activities from API, try to generate from posting history
         if (activity.length === 0) {
-        const history = postingHistoryResponse.data?.history || postingHistoryResponse.data?.posts || [];
-        if (Array.isArray(history)) {
-          history.slice(0, 10).forEach((post: any, index: number) => {
-            activity.push({
-              id: `post-${index}`,
-              action: 'Content posted',
-              platform: post.platform || 'Unknown',
-              time: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Recently',
-              status: 'success',
-              content: post.content || 'Posted content',
-              createdAt: post.created_at,
-              author: post.author || 'User'
+          const history = postingHistoryResponse.data?.history || postingHistoryResponse.data?.posts || [];
+          if (Array.isArray(history)) {
+            history.slice(0, 10).forEach((post: any, index: number) => {
+              activity.push({
+                id: `post-${index}`,
+                action: 'Content posted',
+                platform: post.platform || 'Unknown',
+                time: post.created_at ? new Date(post.created_at).toLocaleDateString() : 'Recently',
+                status: 'success',
+                content: post.content || 'Posted content',
+                createdAt: post.created_at,
+                author: post.author || 'User'
+              });
             });
-          });
+          }
         }
-      }
+        
+        // Add scheduled posts as activities
         const scheduled = scheduledPostsResponse.data?.scheduled_posts || scheduledPostsResponse.data?.posts || [];
         if (Array.isArray(scheduled)) {
           scheduled.slice(0, 5).forEach((post: any, index: number) => {
@@ -132,14 +145,52 @@ export default function Dashboard() {
             });
           });
         }
+        // If still no activities, create a placeholder
+        if (activity.length === 0) {
+          activity.push({
+            id: 'placeholder-1',
+            action: 'Welcome to your dashboard',
+            platform: 'System',
+            time: new Date().toLocaleString(),
+            status: 'success',
+            content: 'Start creating content to see your recent activities here',
+            createdAt: new Date().toISOString(),
+            author: 'System'
+          });
+        }
+        
         setRecentActivity(activity);
       } else {
         console.log('No accounts found or invalid response format');
         setConnectedAccounts([]);
+        
+        // Set empty state for activities
+        setRecentActivity([{
+          id: 'no-accounts-1',
+          action: 'Connect your accounts',
+          platform: 'System',
+          time: new Date().toLocaleString(),
+          status: 'pending',
+          content: 'Connect your social media accounts to start posting content',
+          createdAt: new Date().toISOString(),
+          author: 'System'
+        }]);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       showNotification('error', 'Dashboard Error', 'Failed to load dashboard data');
+      
+      // Set fallback activities even on error
+      setRecentActivity([{
+        id: 'error-1',
+        action: 'Dashboard loading error',
+        platform: 'System',
+        time: new Date().toLocaleString(),
+        status: 'error',
+        content: 'There was an error loading your dashboard data. Please refresh the page.',
+        createdAt: new Date().toISOString(),
+        author: 'System'
+      }]);
     } finally {
       setLoading(false);
     }

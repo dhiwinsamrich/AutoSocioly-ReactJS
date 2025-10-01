@@ -9,6 +9,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { Navigation } from '@/components/Navigation';
 import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, Redo, Info, Hash, MessageSquare, TrendingUp, RefreshCw } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
+import { EditModal } from '@/components/EditModal';
 
 interface ContentReview {
   id: string;
@@ -71,10 +72,23 @@ const ReviewContent = () => {
   const [workflowData, setWorkflowData] = useState<any>(null);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [workflowId, setWorkflowId] = useState<string>('');
+  const [hasFetched, setHasFetched] = useState(false);
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    type: 'caption' | 'hashtags' | 'image';
+    itemId: string;
+  }>({
+    isOpen: false,
+    type: 'caption',
+    itemId: ''
+  });
 
   useEffect(() => {
-    fetchGeneratedContent();
-  }, []);
+    if (!hasFetched) {
+      setHasFetched(true);
+      fetchGeneratedContent();
+    }
+  }, [hasFetched]);
 
   const generateAnalyticsFromContent = (contentData: ContentReview[]) => {
     if (contentData.length === 0) return;
@@ -382,12 +396,12 @@ const ReviewContent = () => {
               improvements: platformAnalytics.improvements || ['Add more emojis for engagement', 'Include user-generated content', 'Optimize posting schedule', 'Enhance visual storytelling']
             });
           } else if (transformedContent.length > 0) {
-            // Use Gemini AI for analytics instead of basic client-side generation
-            fetchGeminiAnalytics(transformedContent);
+            // Generate basic analytics from content instead of making API calls
+            generateAnalyticsFromContent(transformedContent);
           }
         } else if (transformedContent.length > 0) {
-          // Use Gemini AI for analytics instead of basic client-side generation
-          fetchGeminiAnalytics(transformedContent);
+          // Generate basic analytics from content instead of making API calls
+          generateAnalyticsFromContent(transformedContent);
         }
       } else {
         showNotification('error', 'Failed to Load', response.message || 'Failed to load generated content');
@@ -409,12 +423,11 @@ const ReviewContent = () => {
   };
 
   const handleEdit = (id: string) => {
-    const newContent = editingContent[id];
-    setContent(prev => prev.map(item => item.id === id ? {
-      ...item,
-      content: newContent
-    } : item));
-    showNotification('success', 'Content Updated', 'Content has been updated');
+    setEditModal({
+      isOpen: true,
+      type: 'caption',
+      itemId: id
+    });
   };
 
   const handleReject = (id: string) => {
@@ -423,11 +436,97 @@ const ReviewContent = () => {
   };
 
   const handleEditImage = (id: string) => {
-    showNotification('info', 'Image Editing', 'Image editing functionality coming soon!');
+    setEditModal({
+      isOpen: true,
+      type: 'image',
+      itemId: id
+    });
   };
 
-  const handleRegenerateImage = (id: string) => {
-    showNotification('info', 'Image Regeneration', 'Image regeneration functionality coming soon!');
+  const handleRegenerateImage = async (id: string) => {
+    try {
+      showNotification('info', 'Regenerating Image', 'Creating a new version of this image...');
+      
+      // Call API to regenerate image
+      const response = await apiService.regenerateImage({
+        workflow_id: workflowId,
+        image_id: id
+      });
+      
+      if (response.success) {
+        // Update the generated images
+        setGeneratedImages(prev => {
+          const newImages = [...prev];
+          const imageIndex = parseInt(id.split('-')[1]);
+          if (imageIndex >= 0 && imageIndex < newImages.length) {
+            newImages[imageIndex] = response.image_url;
+          }
+          return newImages;
+        });
+        
+        showNotification('success', 'Image Regenerated', 'New image has been generated successfully!');
+      } else {
+        showNotification('error', 'Regeneration Failed', response.message || 'Failed to regenerate image');
+      }
+    } catch (error) {
+      console.error('Image regeneration error:', error);
+      showNotification('error', 'Regeneration Failed', 'Failed to regenerate image. Please try again.');
+    }
+  };
+
+  const handleEditHashtags = (id: string) => {
+    setEditModal({
+      isOpen: true,
+      type: 'hashtags',
+      itemId: id
+    });
+  };
+
+  const handleSaveEdit = async (editData: any) => {
+    const { content: newContent, hashtags: newHashtags, imagePrompt } = editData;
+    const itemId = editModal.itemId;
+
+    try {
+      if (editModal.type === 'caption') {
+        setContent(prev => prev.map(item => item.id === itemId ? {
+          ...item,
+          content: newContent
+        } : item));
+        showNotification('success', 'Caption Updated', 'Caption has been updated successfully!');
+      } else if (editModal.type === 'hashtags') {
+        setContent(prev => prev.map(item => item.id === itemId ? {
+          ...item,
+          hashtags: newHashtags
+        } : item));
+        showNotification('success', 'Hashtags Updated', 'Hashtags have been updated successfully!');
+      } else if (editModal.type === 'image' && imagePrompt) {
+        showNotification('info', 'Regenerating Image', 'Creating new image with your prompt...');
+        
+        const response = await apiService.regenerateImage({
+          workflow_id: workflowId,
+          image_id: itemId,
+          new_prompt: imagePrompt
+        });
+        
+        if (response.success) {
+          setGeneratedImages(prev => {
+            const newImages = [...prev];
+            const imageIndex = parseInt(itemId.split('-')[1]);
+            if (imageIndex >= 0 && imageIndex < newImages.length) {
+              newImages[imageIndex] = response.image_url;
+            }
+            return newImages;
+          });
+          
+          showNotification('success', 'Image Updated', 'Image has been regenerated successfully!');
+        } else {
+          showNotification('error', 'Regeneration Failed', response.message || 'Failed to regenerate image');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving edit:', error);
+      showNotification('error', 'Save Failed', 'Failed to save changes. Please try again.');
+    }
   };
 
   // In ReviewContent.tsx - Fix handlePostAll function
@@ -716,7 +815,7 @@ const handlePostAll = async () => {
                         <Hash className="h-4 w-4 text-neutral-950 mx-0 px-0 my-[7px]" />
                         Hashtags:
                       </h6>
-                      {item.status !== 'approved' && <Button size="sm" variant="outline" className="text-neutral-950">
+                      {item.status !== 'approved' && <Button size="sm" variant="outline" className="text-neutral-950" onClick={() => handleEditHashtags(item.id)}>
                           <Edit3 className="h-4 w-4 mr-1" />
                           Edit Hashtags
                         </Button>}
@@ -906,6 +1005,19 @@ const handlePostAll = async () => {
               </div>
             </div>
           </GlassCard>}
+
+        {/* Edit Modal */}
+        <EditModal
+          isOpen={editModal.isOpen}
+          onClose={() => setEditModal({ isOpen: false, type: 'caption', itemId: '' })}
+          onSave={handleSaveEdit}
+          initialData={{
+            content: content.find(item => item.id === editModal.itemId)?.content || '',
+            hashtags: content.find(item => item.id === editModal.itemId)?.hashtags || [],
+            imagePrompt: ''
+          }}
+          type={editModal.type}
+        />
       </div>
     </div>;
 }

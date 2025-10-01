@@ -16,7 +16,8 @@ import { faXTwitter, faFacebookF, faInstagram, faLinkedinIn, faRedditAlien, faPi
 import { 
   Wand2, 
   Mic, 
-  Loader2
+  Loader2,
+  Image
 } from 'lucide-react';
 
 const platforms = [
@@ -69,6 +70,9 @@ export const ContentCreationForm = () => {
   const [tone, setTone] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [useReferenceImage, setUseReferenceImage] = useState(false);
   const { notifications, showNotification, removeNotification } = useNotification();
   const navigate = useNavigate();
 
@@ -85,6 +89,35 @@ export const ContentCreationForm = () => {
       console.error('Error toggling platform:', error);
       showNotification('error', 'Platform Selection Error', 'Failed to select platform. Please try again.');
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        showNotification('error', 'File Too Large', 'Please select an image smaller than 10MB.');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        showNotification('error', 'Invalid File Type', 'Please select a valid image file.');
+        return;
+      }
+      
+      setReferenceImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+      setUseReferenceImage(true);
+    }
+  };
+
+  const removeReferenceImage = () => {
+    setReferenceImage(null);
+    setImagePreview(null);
+    setUseReferenceImage(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,14 +138,22 @@ export const ContentCreationForm = () => {
     try {
       const contentTone = tone || 'professional';
       
-      const response = await apiService.createContent({
+      const requestData: any = {
         topic: topic.trim(),
         platforms: selectedPlatforms,
         tone: contentTone,
         include_image: true,
         caption_length: 'short',
         hashtag_count: 10
-      });
+      };
+
+      // Add reference image if provided
+      if (useReferenceImage && referenceImage) {
+        requestData.reference_image = referenceImage;
+        requestData.use_reference_image = true;
+      }
+      
+      const response = await apiService.createContent(requestData);
 
       if (response.success) {
         setIsLoading(false);
@@ -199,6 +240,52 @@ export const ContentCreationForm = () => {
                 <SelectItem value="educational">Educational</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Reference Image Upload */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">
+              Reference Image (Optional)
+            </Label>
+            <div className="flex items-center space-x-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="reference-image"
+              />
+              <label
+                htmlFor="reference-image"
+                className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-black transition-colors flex items-center space-x-2"
+              >
+                <Image className="h-4 w-4" />
+                <span>Upload Reference Image</span>
+              </label>
+              {useReferenceImage && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeReferenceImage}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Remove
+                </Button>
+              )}
+            </div>
+            {imagePreview && (
+              <div className="mt-3">
+                <img
+                  src={imagePreview}
+                  alt="Reference preview"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  Reference image will be used to guide AI generation
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Platform Selection */}
