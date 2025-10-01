@@ -621,7 +621,15 @@ const handlePostAll = async () => {
 
     console.log('Successfully posted to all platforms:', response);
     showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
-    navigate('/dashboard');
+    
+    // Navigate to success page with posting details
+    const platformNames = platformsWithAccounts.map(p => p.platform).join(', ');
+    navigate('/success', {
+      state: {
+        title: 'Content Posted Successfully!',
+        message: `Your content has been posted to ${platformNames}. You can view your recent activity on the dashboard.`
+      }
+    });
 
   } catch (error: any) {
     console.error('Error posting content:', error);
@@ -652,7 +660,15 @@ const handlePostAll = async () => {
         });
       }
       showNotification('success', 'Content Scheduled', 'Content has been scheduled successfully!');
-      navigate('/dashboard');
+      
+      // Navigate to success page with scheduling details
+      const platformNames = approvedContent.map(item => item.platform).join(', ');
+      navigate('/success', {
+        state: {
+          title: 'Content Scheduled Successfully!',
+          message: `Your content has been scheduled for ${platformNames}. You can view your scheduled posts on the dashboard.`
+        }
+      });
     } catch (error) {
       console.error('Error scheduling content:', error);
       showNotification('error', 'Scheduling Failed', 'Failed to schedule content. Please try again.');
