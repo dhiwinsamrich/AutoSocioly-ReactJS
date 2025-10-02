@@ -622,12 +622,13 @@ const handlePostAll = async () => {
     console.log('Successfully posted to all platforms:', response);
     showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
     
-    // Navigate to success page with posting details
+    // Navigate to success page with posting details and post data
     const platformNames = platformsWithAccounts.map(p => p.platform).join(', ');
     navigate('/success', {
       state: {
         title: 'Content Posted Successfully!',
-        message: `Your content has been posted to ${platformNames}. You can view your recent activity on the dashboard.`
+        message: `Your content has been posted to ${platformNames}. You can view your recent activity on the dashboard.`,
+        postData: response // Pass the entire API response which contains post data
       }
     });
 

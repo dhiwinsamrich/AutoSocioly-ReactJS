@@ -1,8 +1,9 @@
 import { Navigation } from '@/components/Navigation';
 import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Home, LayoutDashboard } from 'lucide-react';
+import { CheckCircle, Home, LayoutDashboard, ExternalLink, Calendar, User, AtSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { APIPostResponse, SuccessPagePostData } from '@/types/post';
 
 interface SuccessProps {
   title?: string;
@@ -16,29 +17,124 @@ export default function Success({
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get title and message from location state if available
+  // Get data from location state
   const successTitle = location.state?.title || title;
   const successMessage = location.state?.message || message;
-  return <div className="min-h-screen flex items-center justify-center p-4 bg-neutral-950">
-      <GlassCard className="p-12 text-center max-w-md w-full">
-        <div className="mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-gray-700 to-gray-900 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse bg-green-400">
-            <CheckCircle className="h-10 w-10 text-white bg-transparent" />
+  const apiResponse: APIPostResponse | null = location.state?.postData || null;
+  
+  // Extract post data from API response
+  const postData = apiResponse?.post || apiResponse?.data?.post || null;
+
+  // Helper function to format date
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Helper function to capitalize platform name
+  const capitalizePlatform = (platform: string) => {
+    return platform.charAt(0).toUpperCase() + platform.slice(1);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-neutral-950">
+      <GlassCard className="p-8 text-center max-w-2xl w-full">
+        <div className="mb-8">
+          <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-3">{successTitle}</h1>
-          <p className="text-gray-600 text-lg">{successMessage}</p>
+          <p className="text-gray-600 text-lg mb-6">{successMessage}</p>
         </div>
+
+        {/* Post Details */}
+        {postData && postData.platforms && postData.platforms.length > 0 && (
+          <div className="mb-8 space-y-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Details</h2>
+            
+            {postData.platforms.map((platformData, index) => (
+              <div key={index} className="bg-white/50 rounded-lg p-6 border border-gray-200">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">
+                        {capitalizePlatform(platformData.platform).charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {capitalizePlatform(platformData.platform)}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Status: <span className="capitalize font-medium text-green-600">{platformData.status}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-left">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-600">Display Name</p>
+                      <p className="font-medium text-gray-900">{platformData.accountId.displayName}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <AtSign className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-600">Username</p>
+                      <p className="font-medium text-gray-900">{platformData.accountId.username}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 md:col-span-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-600">Published At</p>
+                      <p className="font-medium text-gray-900">{formatDate(platformData.publishedAt)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* View Post Button */}
+                {platformData.platformPostUrl && (
+                  <Button 
+                    onClick={() => window.open(platformData.platformPostUrl, '_blank')}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Post on {capitalizePlatform(platformData.platform)}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
         
+        {/* Navigation Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={() => navigate('/')} variant="gradient-success">
+          <Button onClick={() => navigate('/')} variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
             <Home className="mr-2 h-4 w-4" />
-            Go Home
+            Create Another Post
           </Button>
-          <Button onClick={() => navigate('/dashboard')} variant="outline" className="border-black text-black hover:bg-black/5">
+          <Button onClick={() => navigate('/dashboard')} className="bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-gray-950 text-white">
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
+            View Dashboard
           </Button>
         </div>
       </GlassCard>
-    </div>;
+    </div>
+  );
 }
