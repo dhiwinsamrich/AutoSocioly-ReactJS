@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import { getApiUrl } from '../config/network';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || getApiUrl();
 
 interface APIResponse {
   success: boolean;
