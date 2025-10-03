@@ -12,7 +12,7 @@ export const NETWORK_CONFIG = {
   FRONTEND_PORT: 8080,
   
   // Use network IP instead of localhost for network access
-  USE_NETWORK_IP: true,
+  USE_NETWORK_IP: false,
 };
 
 // Generate API URL based on configuration

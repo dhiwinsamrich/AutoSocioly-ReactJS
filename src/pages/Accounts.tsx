@@ -2,10 +2,11 @@ import { Navigation } from '@/components/Navigation';
 import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, User, Mail, Calendar, Activity, BarChart3, Settings, RefreshCw, TrendingUp, Image, FileText, Zap, Users } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faReddit, faPinterest } from '@fortawesome/free-brands-svg-icons';
 
@@ -20,6 +21,47 @@ interface Account {
   username?: string;
   connectedAt?: string;
   isActive?: boolean;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url?: string;
+  created_at: string;
+  last_login?: string;
+  plan: string;
+  is_active: boolean;
+}
+
+interface UsageStats {
+  posts_generated: number;
+  posts_posted: number;
+  images_generated: number;
+  api_calls: number;
+  storage_used: number;
+  bandwidth_used: number;
+  period_start: string;
+  period_end: string;
+}
+
+interface PlanLimits {
+  plan_name: string;
+  max_posts_per_month: number;
+  max_api_calls_per_minute: number;
+  max_storage_gb: number;
+  max_bandwidth_gb: number;
+  supported_platforms: string[];
+  features: string[];
+  price: number;
+}
+
+interface AccountDetails {
+  profile: UserProfile;
+  usage_stats: UsageStats;
+  plan_limits: PlanLimits;
+  connected_accounts: Account[];
+  recent_activity: any[];
 }
 
 const platformIcons = {
@@ -81,128 +123,51 @@ const getStatusBadge = (status: string) => {
 };
 
 export default function Accounts() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountDetails, setAccountDetails] = useState<AccountDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigate = useNavigate();
 
-  // All platforms to display
-  const allPlatforms = ['instagram', 'facebook', 'x', 'reddit', 'pinterest', 'linkedin'];
-
   useEffect(() => {
-    fetchAccounts();
+    fetchAccountDetails();
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(fetchAccountDetails, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchAccounts = async () => {
+  const fetchAccountDetails = async () => {
     try {
-      setLoading(true);
-      const response = await apiService.getAccounts();
-      console.log('API Response:', response);
-      
-      let connectedAccounts: Account[] = [];
-      
-      // Helper function to normalize platform names
-      const normalizePlatform = (platform: string): string => {
-        const normalized = platform.toLowerCase();
-        // Map twitter to x
-        if (normalized === 'twitter') return 'x';
-        return normalized;
-      };
-      
-      if (response.success && response.data?.accounts) {
-        connectedAccounts = response.data.accounts.map((acc: any) => {
-          const platformKey = normalizePlatform(acc.platform || 'unknown');
-          const isConnected = acc.connected === true;
-          
-          console.log(`Platform from API: ${acc.platform}, Normalized: ${platformKey}, Connected: ${isConnected}`);
-          
-          return {
-            id: acc.id || acc._id || `${platformKey}-${Date.now()}`,
-            platform: platformKey,
-            connected: isConnected,
-            status: acc.status || (isConnected ? 'active' : 'disconnected'),
-            color: platformColors[platformKey as keyof typeof platformColors] || 'text-gray-600',
-            glowColor: platformGlowColors[platformKey as keyof typeof platformGlowColors] || '',
-            icon: platformIcons[platformKey as keyof typeof platformIcons] || Facebook,
-            username: acc.username || acc.displayName || 'Unknown',
-            connectedAt: acc.connectedAt || acc.connected_at,
-            isActive: acc.isActive !== undefined ? acc.isActive : isConnected
-          };
-        });
-      } else if (response.accounts) {
-        connectedAccounts = response.accounts.map((acc: any) => {
-          const platformKey = normalizePlatform(acc.platform || 'unknown');
-          const isConnected = acc.connected === true;
-          
-          console.log(`Platform from API: ${acc.platform}, Normalized: ${platformKey}, Connected: ${isConnected}`);
-          
-          return {
-            id: acc.id || acc._id || `${platformKey}-${Date.now()}`,
-            platform: platformKey,
-            connected: isConnected,
-            status: acc.status || (isConnected ? 'active' : 'disconnected'),
-            color: platformColors[platformKey as keyof typeof platformColors] || 'text-gray-600',
-            glowColor: platformGlowColors[platformKey as keyof typeof platformGlowColors] || '',
-            icon: platformIcons[platformKey as keyof typeof platformIcons] || Facebook,
-            username: acc.username || acc.displayName || 'Unknown',
-            connectedAt: acc.connectedAt || acc.connected_at,
-            isActive: acc.isActive !== undefined ? acc.isActive : isConnected
-          };
-        });
-      } else if (response.accounts) {
-        connectedAccounts = response.accounts.map((acc: any) => {
-          const platformKey = normalizePlatform(acc.platform || 'unknown');
-          const isConnected = acc.connected === true;
-          
-          console.log(`Platform from API: ${acc.platform}, Normalized: ${platformKey}, Connected: ${isConnected}`);
-          
-          return {
-            id: acc.id || acc._id || `${platformKey}-${Date.now()}`,
-            platform: platformKey,
-            connected: isConnected,
-            status: acc.status || (isConnected ? 'active' : 'disconnected'),
-            color: platformColors[platformKey as keyof typeof platformColors] || 'text-gray-600',
-            glowColor: platformGlowColors[platformKey as keyof typeof platformGlowColors] || '',
-            icon: platformIcons[platformKey as keyof typeof platformIcons] || Facebook
-          };
-        });
+      setRefreshing(true);
+      const response = await apiService.request('/api/account/profile');
+      if (response.success !== false) {
+        setAccountDetails(response);
+      } else {
+        console.error('Failed to fetch account details:', response.error);
       }
-
-      // Create full list with all platforms
-      const fullAccountsList = allPlatforms.map(platformKey => {
-        const existingAccount = connectedAccounts.find(acc => acc.platform === platformKey);
-        
-        if (existingAccount) {
-          return existingAccount;
-        }
-        
-        return {
-          id: `${platformKey}-placeholder`,
-          platform: platformKey,
-          connected: false,
-          status: 'disconnected' as const,
-          color: platformColors[platformKey as keyof typeof platformColors] || 'text-gray-600',
-          glowColor: platformGlowColors[platformKey as keyof typeof platformGlowColors] || '',
-          icon: platformIcons[platformKey as keyof typeof platformIcons] || Facebook
-        };
-      });
-
-      console.log('Full accounts list:', fullAccountsList);
-      setAccounts(fullAccountsList);
     } catch (error) {
-      console.error('Failed to fetch accounts:', error);
-      // Still show all platforms even on error
-      const defaultAccounts = allPlatforms.map(platformKey => ({
-        id: `${platformKey}-placeholder`,
-        platform: platformKey,
-        connected: false,
-        status: 'disconnected' as const,
-        color: platformColors[platformKey as keyof typeof platformColors] || 'text-gray-600',
-        glowColor: platformGlowColors[platformKey as keyof typeof platformGlowColors] || '',
-        icon: platformIcons[platformKey as keyof typeof platformIcons] || Facebook
-      }));
-      setAccounts(defaultAccounts);
+      console.error('Failed to fetch account details:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const refreshUsageStats = async () => {
+    try {
+      setRefreshing(true);
+      const response = await apiService.request('/api/account/usage');
+      if (response.success !== false) {
+        if (accountDetails) {
+          setAccountDetails({
+            ...accountDetails,
+            usage_stats: response
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh usage stats:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -229,13 +194,22 @@ export default function Accounts() {
     return React.createElement(icon, { className });
   };
 
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not connected';
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
@@ -245,26 +219,143 @@ export default function Accounts() {
     }
   };
 
+  const getUsagePercentage = (used: number, max: number) => {
+    return Math.min((used / max) * 100, 100);
+  };
+
   if (loading) {
-    return <div className="min-h-screen">
+    return (
+      <div className="min-h-screen bg-neutral-950">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
-            <p className="text-white/80">Loading accounts...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-white/80">Loading account details...</p>
           </div>
         </div>
-      </div>;
+      </div>
+    );
   }
 
-  return <div className="min-h-screen bg-neutral-950">
+  if (!accountDetails) {
+    return (
+      <div className="min-h-screen bg-neutral-950">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <p className="text-white/80">Failed to load account details</p>
+            <Button onClick={fetchAccountDetails} className="mt-4">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { profile, usage_stats, plan_limits, connected_accounts, recent_activity } = accountDetails;
+
+  return (
+    <div className="min-h-screen bg-neutral-950">
       <Navigation />
       
-      <div className="container mx-auto px-4 bg-zinc-950 py-8">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Account Dashboard</h1>
+              <p className="text-white/60">Manage your profile, usage, and connected accounts</p>
+            </div>
+            <Button 
+              onClick={refreshUsageStats} 
+              disabled={refreshing}
+              variant="outline"
+              className="text-white border-white/20 hover:bg-white/10"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {/* Profile Section - Simplified */}
+        <div className="mb-8">
+          <GlassCard className="p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <User className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
+                <p className="text-white/60">{profile.email}</p>
+                <Badge variant="secondary" className="mt-2">
+                  {plan_limits.plan_name} Plan
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-4 w-4 text-white/60" />
+                <span className="text-white/80">Member since</span>
+                <span className="text-white font-medium">{formatDate(profile.created_at)}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-white/60" />
+                <span className="text-white/80">Last login</span>
+                <span className="text-white font-medium">
+                  {profile.last_login ? formatDate(profile.last_login) : 'Never'}
+                </span>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Usage Statistics - Real-time from GetLate */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Users className="h-8 w-8 text-blue-500" />
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">{usage_stats.posts_generated}</h3>
+            <p className="text-white/60 text-sm">Profiles Connected</p>
+            <div className="mt-3">
+              <Progress 
+                value={getUsagePercentage(usage_stats.posts_generated, plan_limits.max_posts_per_month)} 
+                className="h-2"
+              />
+              <p className="text-xs text-white/60 mt-1">
+                {usage_stats.posts_generated} / {plan_limits.max_posts_per_month} profiles
+              </p>
+            </div>
+          </GlassCard>
+
+          <GlassCard className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Image className="h-8 w-8 text-purple-500" />
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">{usage_stats.images_generated}</h3>
+            <p className="text-white/60 text-sm">Images Uploaded</p>
+            <div className="mt-3">
+              <Progress 
+                value={getUsagePercentage(usage_stats.images_generated, plan_limits.max_storage_gb)} 
+                className="h-2"
+              />
+              <p className="text-xs text-white/60 mt-1">
+                {usage_stats.images_generated} / {plan_limits.max_storage_gb} uploads
+              </p>
+            </div>
+          </GlassCard>
+        </div>
+
         {/* Connected Accounts */}
         <div className="mb-8">
           <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Connected Accounts</h2>
+              <h2 className="text-xl font-semibold text-white">Connected Accounts</h2>
               <Button variant="gradient" onClick={handleNavigateToConnections}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Account
@@ -272,83 +363,89 @@ export default function Accounts() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {accounts.map(platform => {
-                const borderGlow = platform.connected ? platformBorderGlow[platform.platform as keyof typeof platformBorderGlow] : '';
+              {['instagram', 'facebook', 'x', 'reddit', 'pinterest', 'linkedin'].map(platformKey => {
+                const account = connected_accounts.find(acc => acc.platform === platformKey);
+                const isConnected = account?.connected || false;
+                const borderGlow = isConnected ? platformBorderGlow[platformKey as keyof typeof platformBorderGlow] : '';
                 
-                return <div 
-                        key={platform.id} 
-                        className={`relative border-2 rounded-lg p-6 hover:shadow-md transition-all duration-300 ${
-                          platform.connected 
-                            ? borderGlow
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        {/* Status Indicator Dot */}
-                        <div className="absolute top-3 right-3">
-                          {platform.isActive ? (
-                            <div className="relative">
-                              <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
-                              <div className="absolute top-0 left-0 h-3 w-3 bg-green-500 rounded-full opacity-75 animate-ping"></div>
-                            </div>
-                          ) : (
-                            <div className="h-3 w-3 bg-red-500 rounded-full"></div>
+                return (
+                  <div 
+                    key={platformKey} 
+                    className={`relative border-2 rounded-lg p-6 hover:shadow-md transition-all duration-300 ${
+                      isConnected 
+                        ? borderGlow
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    {/* Status Indicator Dot */}
+                    <div className="absolute top-3 right-3">
+                      {isConnected ? (
+                        <div className="relative">
+                          <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                          <div className="absolute top-0 left-0 h-3 w-3 bg-green-500 rounded-full opacity-75 animate-ping"></div>
+                        </div>
+                      ) : (
+                        <div className="h-3 w-3 bg-red-500 rounded-full"></div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg bg-gray-50 ${platformColors[platformKey as keyof typeof platformColors]} ${isConnected ? platformGlowColors[platformKey as keyof typeof platformGlowColors] : ''} transition-all duration-300`}>
+                          {renderIcon(platformKey, platformIcons[platformKey as keyof typeof platformIcons])}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{getPlatformDisplayName(platformKey)}</h3>
+                          {account?.username && (
+                            <p className="text-sm text-gray-600">@{account.username}</p>
                           )}
                         </div>
+                      </div>
+                      {getStatusIcon(isConnected ? 'active' : 'disconnected')}
+                    </div>
 
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <div className={`p-2 rounded-lg bg-gray-50 ${platform.color} ${platform.connected ? platform.glowColor : ''} transition-all duration-300`}>
-                              {renderIcon(platform.platform, platform.icon)}
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900">{getPlatformDisplayName(platform.platform)}</h3>
-                              {platform.username && (
-                                <p className="text-sm text-gray-600">@{platform.username}</p>
-                              )}
-                            </div>
+                    <div className="mb-4 space-y-2">
+                      {getStatusBadge(isConnected ? 'active' : 'disconnected')}
+                      
+                      {isConnected && account && (
+                        <div className="text-xs text-gray-600 space-y-1 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">Account ID:</span>
+                            <span className="font-mono text-gray-500">{account.id.substring(0, 12)}...</span>
                           </div>
-                          {getStatusIcon(platform.status)}
                         </div>
+                      )}
+                    </div>
 
-                        <div className="mb-4 space-y-2">
-                          {getStatusBadge(platform.status)}
-                          
-                          {platform.connected && (
-                            <div className="text-xs text-gray-600 space-y-1 mt-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-medium">Account ID:</span>
-                                <span className="font-mono text-gray-500">{platform.id.substring(0, 12)}...</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex space-x-2">
-                          {platform.connected ? (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-full text-red-600 hover:text-red-700" 
-                              onClick={handleNavigateToConnections}
-                            >
-                              Disconnect
-                            </Button>
-                          ) : (
-                            <Button 
-                              size="sm" 
-                              className="w-full" 
-                              variant="gradient" 
-                              onClick={handleNavigateToConnections}
-                            >
-                              Connect {getPlatformDisplayName(platform.platform)}
-                            </Button>
-                          )}
-                        </div>
-                      </div>;
+                    <div className="flex space-x-2">
+                      {isConnected ? (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full text-red-600 hover:text-red-700" 
+                          onClick={handleNavigateToConnections}
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          className="w-full" 
+                          variant="gradient" 
+                          onClick={handleNavigateToConnections}
+                        >
+                          Connect {getPlatformDisplayName(platformKey)}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
               })}
             </div>
           </GlassCard>
         </div>
+
       </div>
-    </div>;
+    </div>
+  );
 }
