@@ -56,12 +56,21 @@ interface PlanLimits {
   price: number;
 }
 
+interface ProfileDetails {
+  profile_id: string;
+  created_at: string;
+  updated_at: string;
+  is_default: boolean;
+  color: string;
+}
+
 interface AccountDetails {
   profile: UserProfile;
   usage_stats: UsageStats;
   plan_limits: PlanLimits;
   connected_accounts: Account[];
   recent_activity: any[];
+  profile_details: ProfileDetails;
 }
 
 const platformIcons = {
@@ -139,11 +148,8 @@ export default function Accounts() {
     try {
       setRefreshing(true);
       const response = await apiService.request('/api/account/profile');
-      if (response.success !== false) {
-        setAccountDetails(response);
-      } else {
-        console.error('Failed to fetch account details:', response.error);
-      }
+      // The response from the backend is directly the AccountDetails object
+      setAccountDetails(response as unknown as AccountDetails);
     } catch (error) {
       console.error('Failed to fetch account details:', error);
     } finally {
@@ -156,13 +162,11 @@ export default function Accounts() {
     try {
       setRefreshing(true);
       const response = await apiService.request('/api/account/usage');
-      if (response.success !== false) {
-        if (accountDetails) {
-          setAccountDetails({
-            ...accountDetails,
-            usage_stats: response
-          });
-        }
+      if (accountDetails) {
+        setAccountDetails({
+          ...accountDetails,
+          usage_stats: response as unknown as UsageStats
+        });
       }
     } catch (error) {
       console.error('Failed to refresh usage stats:', error);
@@ -253,7 +257,7 @@ export default function Accounts() {
     );
   }
 
-  const { profile, usage_stats, plan_limits, connected_accounts, recent_activity } = accountDetails;
+  const { profile, usage_stats, plan_limits, connected_accounts, recent_activity, profile_details } = accountDetails;
 
   return (
     <div className="min-h-screen bg-neutral-950">
@@ -273,8 +277,8 @@ export default function Accounts() {
               variant="outline"
               className="text-white border-white/20 hover:bg-white/10"
             >
-              <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`mr-2 h-4 w-4 text-black ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="text-black">Refresh</span>
             </Button>
           </div>
         </div>
@@ -287,28 +291,42 @@ export default function Accounts() {
                 <User className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
-                <p className="text-white/60">{profile.email}</p>
+                <h2 className="text-2xl font-bold text-black">{profile.name}</h2>
+                <p className="text-black/60">{profile.email}</p>
                 <Badge variant="secondary" className="mt-2">
                   {plan_limits.plan_name} Plan
                 </Badge>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-white/60" />
-                <span className="text-white/80">Member since</span>
-                <span className="text-white font-medium">{formatDate(profile.created_at)}</span>
+            {/* Profile Details from GetLate */}
+            {profile_details && Object.keys(profile_details).length > 0 && (
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-white/60" />
+                    <span className="text-black/80">Profile ID:</span>
+                    <span className="text-black font-medium font-mono text-sm">
+                      {profile_details.profile_id ? profile_details.profile_id.substring(0, 24) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-4 w-4 text-white/60" />
+                    <span className="text-black/80">Member since:</span>
+                    <span className="text-black font-medium">
+                      {profile_details.created_at ? formatDate(profile_details.created_at) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Activity className="h-4 w-4 text-white/60" />
+                    <span className="text-black/80">Last Active:</span>
+                    <span className="text-black font-medium">
+                      {profile_details.updated_at ? formatDate(profile_details.updated_at) : 'N/A'}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-white/60" />
-                <span className="text-white/80">Last login</span>
-                <span className="text-white font-medium">
-                  {profile.last_login ? formatDate(profile.last_login) : 'Never'}
-                </span>
-              </div>
-            </div>
+            )}
           </GlassCard>
         </div>
 
@@ -319,14 +337,14 @@ export default function Accounts() {
               <Users className="h-8 w-8 text-blue-500" />
               <TrendingUp className="h-4 w-4 text-green-500" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">{usage_stats.posts_generated}</h3>
-            <p className="text-white/60 text-sm">Profiles Connected</p>
+            <h3 className="text-2xl font-bold text-black mb-1">{usage_stats.posts_generated}</h3>
+            <p className="text-black/60 text-sm">Profiles Connected</p>
             <div className="mt-3">
               <Progress 
                 value={getUsagePercentage(usage_stats.posts_generated, plan_limits.max_posts_per_month)} 
                 className="h-2"
               />
-              <p className="text-xs text-white/60 mt-1">
+              <p className="text-xs text-black mt-1">
                 {usage_stats.posts_generated} / {plan_limits.max_posts_per_month} profiles
               </p>
             </div>
@@ -337,14 +355,14 @@ export default function Accounts() {
               <Image className="h-8 w-8 text-purple-500" />
               <TrendingUp className="h-4 w-4 text-green-500" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">{usage_stats.images_generated}</h3>
-            <p className="text-white/60 text-sm">Images Uploaded</p>
+            <h3 className="text-2xl font-bold text-black mb-1">{usage_stats.images_generated}</h3>
+            <p className="text-black/60 text-sm">Posts Uploaded</p>
             <div className="mt-3">
               <Progress 
                 value={getUsagePercentage(usage_stats.images_generated, plan_limits.max_storage_gb)} 
                 className="h-2"
               />
-              <p className="text-xs text-white/60 mt-1">
+              <p className="text-xs text-black mt-1">
                 {usage_stats.images_generated} / {plan_limits.max_storage_gb} uploads
               </p>
             </div>
@@ -355,7 +373,7 @@ export default function Accounts() {
         <div className="mb-8">
           <GlassCard className="p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Connected Accounts</h2>
+              <h2 className="text-xl font-semibold text-black">Connected Accounts</h2>
               <Button variant="gradient" onClick={handleNavigateToConnections}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Account
