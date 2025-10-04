@@ -2,6 +2,7 @@ import { Navigation } from '@/components/Navigation';
 import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ActivityDemo } from '@/components/ActivityDemo';
 import { TrendingUp, Users, Calendar, BarChart3, Plus, Eye, Clock, CheckCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -213,8 +214,9 @@ export default function Dashboard() {
           <p className="text-white/80">Monitor your social media performance and manage content</p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Quick Actions */}
-          <div className="lg:col-span-1">
+          {/* Left Column - Quick Actions and Activity Demo */}
+          <div className="lg:col-span-1 space-y-8">
+            {/* Quick Actions */}
             <GlassCard className="p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
@@ -235,9 +237,14 @@ export default function Dashboard() {
               })}
               </div>
             </GlassCard>
+
+            {/* Activity Demo */}
+            <GlassCard className="p-6">
+              <ActivityDemo />
+            </GlassCard>
           </div>
 
-          {/* Recent Activity */}
+          {/* Right Column - Recent Activity */}
           <div className="lg:col-span-2">
             <GlassCard className="p-6">
               <div className="flex items-center justify-between mb-6">

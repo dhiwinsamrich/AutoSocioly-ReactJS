@@ -25,26 +25,19 @@ export const GeneratingLoader = ({
 
   return (
     <div className={cn(
-      "fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300",
-      isVisible ? "opacity-100" : "opacity-0"
+      "fixed bottom-4 right-4 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-lg p-3 shadow-lg transition-all duration-300",
+      isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
     )}>
-      <div className="text-center">
+      <div className="flex items-center space-x-3">
         {/* Animated Loader */}
-        <div className="loader-wrapper">
-          <div className="loader"></div>
-          <div className="loader-text">
-            {text.split('').map((letter, index) => (
-              <span key={index} className="loader-letter">
-                {letter}
-              </span>
-            ))}
-          </div>
+        <div className="loader-wrapper-small">
+          <div className="loader-small"></div>
         </div>
         
-        {/* Loading message */}
-        <p className="text-white/80 mt-4 text-lg">
-          Creating amazing content for you...
-        </p>
+        {/* Loading text */}
+        <div className="text-white text-sm font-medium">
+          {text}
+        </div>
       </div>
     </div>
   );

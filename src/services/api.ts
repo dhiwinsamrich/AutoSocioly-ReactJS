@@ -2,6 +2,15 @@ import { getApiUrl } from '../config/network';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || getApiUrl();
 
+// Activity tracking integration
+let activityTrackingEnabled = false;
+let activityTracker: any = null;
+
+export const setActivityTracker = (tracker: any) => {
+  activityTracker = tracker;
+  activityTrackingEnabled = true;
+};
+
 interface APIResponse {
   success: boolean;
   data?: any;
@@ -102,6 +111,17 @@ class APIService {
 
   // Content creation endpoint with JSON support and file upload
   async createContent(data: Record<string, any>): Promise<APIResponse> {
+    // Track activity if enabled
+    let activityId: string | null = null;
+    if (activityTrackingEnabled && activityTracker) {
+      activityId = activityTracker.addActivity({
+        type: 'processing',
+        title: 'Creating content',
+        description: 'Processing your content request...',
+        status: 'in_progress',
+        progress: 0,
+      });
+    }
     // Check if we have a reference image to upload
     if (data.reference_image && data.use_reference_image) {
       const formData = new FormData();
@@ -139,9 +159,30 @@ class APIService {
       }
       
       try {
-        return await response.json();
+        const result = await response.json();
+        
+        // Update activity on success
+        if (activityId && activityTracker) {
+          activityTracker.updateActivity(activityId, {
+            status: 'completed',
+            progress: 100,
+            title: 'Content created successfully',
+          });
+        }
+        
+        return result;
       } catch (jsonError) {
         console.error('Failed to parse JSON response:', jsonError);
+        
+        // Update activity on success (even with JSON error)
+        if (activityId && activityTracker) {
+          activityTracker.updateActivity(activityId, {
+            status: 'completed',
+            progress: 100,
+            title: 'Content created successfully',
+          });
+        }
+        
         return {
           success: true,
           message: 'Content created successfully',
@@ -180,9 +221,30 @@ class APIService {
       
       // Try to parse JSON response
       try {
-        return await response.json();
+        const result = await response.json();
+        
+        // Update activity on success
+        if (activityId && activityTracker) {
+          activityTracker.updateActivity(activityId, {
+            status: 'completed',
+            progress: 100,
+            title: 'Content created successfully',
+          });
+        }
+        
+        return result;
       } catch (jsonError) {
         console.error('Failed to parse JSON response:', jsonError);
+        
+        // Update activity on success (even with JSON error)
+        if (activityId && activityTracker) {
+          activityTracker.updateActivity(activityId, {
+            status: 'completed',
+            progress: 100,
+            title: 'Content created successfully',
+          });
+        }
+        
         // If JSON parsing fails, return a success response with default data
         return {
           success: true,
@@ -190,6 +252,29 @@ class APIService {
           workflow_id: 'default-workflow-id'
         };
       }
+    }
+  }
+
+  // Add error handling wrapper for createContent
+  async createContentWithTracking(data: Record<string, any>): Promise<APIResponse> {
+    try {
+      return await this.createContent(data);
+    } catch (error) {
+      // Update activity on error
+      if (activityTrackingEnabled && activityTracker) {
+        const activities = activityTracker.activities || [];
+        const lastActivity = activities.find((activity: any) => 
+          activity.title === 'Creating content' && activity.status === 'in_progress'
+        );
+        if (lastActivity) {
+          activityTracker.updateActivity(lastActivity.id, {
+            status: 'failed',
+            title: 'Content creation failed',
+            description: error instanceof Error ? error.message : 'Unknown error occurred',
+          });
+        }
+      }
+      throw error;
     }
   }
 
@@ -205,6 +290,20 @@ class APIService {
 
   // Enhanced post content method with proper media handling
   async postContent(data: Record<string, any>): Promise<APIResponse> {
+    // Track activity if enabled
+    let activityId: string | null = null;
+    if (activityTrackingEnabled && activityTracker) {
+      const platforms = data.platforms?.map((p: any) => p.platform || p).join(', ') || 'Unknown';
+      activityId = activityTracker.addActivity({
+        type: 'posting',
+        title: 'Publishing content',
+        description: `Posting to ${platforms}`,
+        platform: platforms,
+        status: 'in_progress',
+        progress: 0,
+      });
+    }
+
     try {
       // Check if this is the new format with content and platforms array
       if (data.content && data.platforms && Array.isArray(data.platforms)) {
@@ -375,7 +474,18 @@ class APIService {
           throw new Error(errorMessage);
         }
 
-        return await response.json();
+        const result = await response.json();
+        
+        // Update activity on success
+        if (activityId && activityTracker) {
+          activityTracker.updateActivity(activityId, {
+            status: 'completed',
+            progress: 100,
+            title: 'Content published successfully',
+          });
+        }
+        
+        return result;
       }
       else {
         throw new Error('Invalid payload format: missing required fields (content + platforms, or workflow_id + platform_content, or platform + content)');
@@ -383,6 +493,16 @@ class APIService {
 
     } catch (error) {
       console.error('Failed to post content:', error);
+      
+      // Update activity on error
+      if (activityId && activityTracker) {
+        activityTracker.updateActivity(activityId, {
+          status: 'failed',
+          title: 'Content publishing failed',
+          description: error instanceof Error ? error.message : 'Unknown error occurred',
+        });
+      }
+      
       throw error;
     }
   }

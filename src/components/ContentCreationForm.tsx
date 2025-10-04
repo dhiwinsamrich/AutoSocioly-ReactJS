@@ -10,6 +10,7 @@ import { GlassCard } from './GlassCard';
 import { GeneratingLoader } from './GeneratingLoader';
 import { NotificationToast } from './NotificationToast';
 import { useNotification } from '../hooks/useNotification';
+import { useActivity } from '../contexts/ActivityContext';
 import { apiService } from '../services/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faFacebookF, faInstagram, faLinkedinIn, faRedditAlien, faPinterestP } from '@fortawesome/free-brands-svg-icons';
@@ -74,6 +75,7 @@ export const ContentCreationForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [useReferenceImage, setUseReferenceImage] = useState(false);
   const { notifications, showNotification, removeNotification } = useNotification();
+  const { addActivity, updateActivity, addLiveMessage, clearCurrentMessage, showPopup } = useActivity();
   const navigate = useNavigate();
 
   const handlePlatformToggle = (platformId: string) => {
@@ -134,6 +136,48 @@ export const ContentCreationForm = () => {
     }
 
     setIsLoading(true);
+    showPopup(); // Show the activity popup
+
+    // Add activity tracking
+    const activityId = addActivity({
+      type: 'processing',
+      title: 'Creating content',
+      description: `Generating content for: ${topic.trim()}`,
+      platform: selectedPlatforms.join(', '),
+      status: 'in_progress',
+      progress: 0,
+    });
+
+    // Add live messages for content creation
+    const messages = [
+      'Initializing content generation...',
+      'Analyzing topic and requirements...',
+      'Generating engaging captions...',
+      'Creating relevant hashtags...',
+      'Optimizing for selected platforms...',
+      'Generating accompanying image...',
+      'Finalizing content package...'
+    ];
+
+    let messageIndex = 0;
+    let progress = 0;
+
+    const messageInterval = setInterval(() => {
+      if (messageIndex < messages.length) {
+        addLiveMessage(activityId, messages[messageIndex]);
+        messageIndex++;
+      }
+    }, 1000);
+
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 18;
+      if (progress >= 90) {
+        progress = 90;
+        clearInterval(progressInterval);
+      } else {
+        updateActivity(activityId, { progress });
+      }
+    }, 800);
 
     try {
       const contentTone = tone || 'professional';
@@ -156,16 +200,47 @@ export const ContentCreationForm = () => {
       const response = await apiService.createContent(requestData);
 
       if (response.success) {
+        // Clear intervals and update activity on success
+        clearInterval(messageInterval);
+        clearInterval(progressInterval);
+        clearCurrentMessage(activityId);
+        updateActivity(activityId, {
+          status: 'completed',
+          progress: 100,
+          title: 'Content created successfully',
+          description: 'Your content is ready for review',
+        });
+        
         setIsLoading(false);
         showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
         
         // Navigate immediately to prevent repeated calls
         navigate('/review-content', { state: { workflowId: response.workflow_id } });
       } else {
+        // Clear intervals and update activity on failure
+        clearInterval(messageInterval);
+        clearInterval(progressInterval);
+        clearCurrentMessage(activityId);
+        updateActivity(activityId, {
+          status: 'failed',
+          title: 'Content creation failed',
+          description: response.message || response.error || 'Failed to generate content',
+        });
+        
         setIsLoading(false);
         showNotification('error', 'Generation Failed', response.message || response.error || 'Failed to generate content. Please try again.');
       }
     } catch (error) {
+      // Clear intervals and update activity on error
+      clearInterval(messageInterval);
+      clearInterval(progressInterval);
+      clearCurrentMessage(activityId);
+      updateActivity(activityId, {
+        status: 'failed',
+        title: 'Content creation failed',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+      
       setIsLoading(false);
       console.error('Content creation error:', error);
       showNotification('error', 'Generation Error', 'An error occurred while generating content. Please try again.');
