@@ -9,6 +9,7 @@ import { GlassCard } from '@/components/GlassCard';
 import { Navigation } from '@/components/Navigation';
 import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, Redo, Info, Hash, MessageSquare, TrendingUp, RefreshCw } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
+import { useActivity } from '@/contexts/ActivityContext';
 import { EditModal } from '@/components/EditModal';
 
 interface ContentReview {
@@ -53,6 +54,7 @@ const ReviewContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useNotification();
+  const { addActivity, updateActivity, addLiveMessage, clearCurrentMessage, showPopup } = useActivity();
   const [content, setContent] = useState<ContentReview[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingContent, setEditingContent] = useState<{ [key: string]: string }>({});
@@ -531,12 +533,59 @@ const ReviewContent = () => {
 
   // In ReviewContent.tsx - Fix handlePostAll function
 const handlePostAll = async () => {
-  setIsPosting(true);  // ADD this line
+  setIsPosting(true);
+  setShowPostAnimation(true);
+  
   const approvedContent = content.filter(item => item.status === 'approved');
   if (approvedContent.length === 0) {
     showNotification('info', 'No Content', 'Please approve at least one piece of content');
+    setIsPosting(false);
+    setShowPostAnimation(false);
     return;
   }
+
+  // Show activity popup and add activity tracking
+  console.log('Starting posting process with activity tracking...');
+  showPopup();
+  const activityId = addActivity({
+    type: 'posting',
+    title: 'Publishing content',
+    description: `Posting to ${approvedContent.map(item => item.platform).join(', ')}`,
+    platform: approvedContent.map(item => item.platform).join(', '),
+    status: 'in_progress',
+    progress: 0,
+  });
+  console.log('Activity created with ID:', activityId);
+
+  // Add live messages for posting process
+  const messages = [
+    'Preparing content for multi-platform posting...',
+    'Validating content against platform guidelines...',
+    'Authenticating with social media APIs...',
+    'Uploading media files...',
+    'Publishing to platforms...',
+    'Finalizing posts...'
+  ];
+
+  let messageIndex = 0;
+  let progress = 0;
+
+  const messageInterval = setInterval(() => {
+    if (messageIndex < messages.length) {
+      addLiveMessage(activityId, messages[messageIndex]);
+      messageIndex++;
+    }
+  }, 1000);
+
+  const progressInterval = setInterval(() => {
+    progress += Math.random() * 20;
+    if (progress >= 90) {
+      progress = 90;
+      clearInterval(progressInterval);
+    } else {
+      updateActivity(activityId, { progress });
+    }
+  }, 800);
 
   try {
     showNotification('info', 'Publishing', 'Publishing content to platforms...');
@@ -619,6 +668,17 @@ const handlePostAll = async () => {
       throw new Error(response.message || 'Failed to post content');
     }
 
+    // Clear intervals and update activity on success
+    clearInterval(messageInterval);
+    clearInterval(progressInterval);
+    clearCurrentMessage(activityId);
+    updateActivity(activityId, {
+      status: 'completed',
+      progress: 100,
+      title: 'Content published successfully',
+      description: 'Your post is now live on all platforms',
+    });
+
     console.log('Successfully posted to all platforms:', response);
     showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
     
@@ -633,11 +693,22 @@ const handlePostAll = async () => {
     });
 
   } catch (error: any) {
+    // Clear intervals and update activity on error
+    clearInterval(messageInterval);
+    clearInterval(progressInterval);
+    clearCurrentMessage(activityId);
+    updateActivity(activityId, {
+      status: 'failed',
+      title: 'Content publishing failed',
+      description: error.message || 'Failed to post content',
+    });
+
     console.error('Error posting content:', error);
     showNotification('error', 'Posting Failed', `Failed to post content: ${error.message}. Please try again.`);
-  }finally {
-  setIsPosting(false);
-}
+  } finally {
+    setIsPosting(false);
+    setShowPostAnimation(false);
+  }
 };
 
   const handleSchedule = async () => {

@@ -572,4 +572,61 @@ All colors MUST be HSL. */
     15% { opacity: 1; }
     65% { opacity: 0; }
   }
+
+  /* Voice Input Styles */
+  .voice-recording {
+    animation: voice-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes voice-pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+  }
+
+  .voice-transcript {
+    animation: voice-fade-in 0.3s ease-in-out;
+  }
+
+  @keyframes voice-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .voice-button {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .voice-button:hover {
+    transform: scale(1.1);
+  }
+
+  .voice-button:active {
+    transform: scale(0.95);
+  }
+
+  .voice-button-compact {
+    border-radius: 50%;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .voice-button-compact:hover {
+    transform: scale(1.1);
+  }
+
+  .voice-button-compact:active {
+    transform: scale(0.9);
+  }
 }

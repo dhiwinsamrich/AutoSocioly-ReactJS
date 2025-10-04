@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { VoiceTextarea } from './VoiceInput';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -83,12 +84,14 @@ export const EditModal: React.FC<EditModalProps> = ({
           {type === 'caption' && (
             <div className="space-y-2">
               <Label htmlFor="content">Caption</Label>
-              <Textarea
+              <VoiceTextarea
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter your caption..."
+                onVoiceTranscript={(transcript) => setContent(transcript)}
+                placeholder="Enter your caption... You can also use voice input!"
                 className="min-h-[120px]"
+                showVoiceButton={true}
               />
               <div className="text-sm text-gray-500">
                 {content.length} characters

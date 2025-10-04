@@ -22,7 +22,7 @@ const queryClient = new QueryClient();
 // Inner app component that has access to activity context
 const AppContent = () => {
   const [showInitialLoader, setShowInitialLoader] = useState(true);
-  const { activities, removeActivity, addActivity, updateActivity } = useActivity();
+  const { activities, removeActivity, addActivity, updateActivity, isPopupVisible } = useActivity();
 
   // Set up activity tracker for API service
   useEffect(() => {
@@ -50,9 +50,9 @@ const AppContent = () => {
         </PageTransition>
       </BrowserRouter>
       
-      {/* Background Activity Popup - Always Visible */}
+      {/* Background Activity Popup */}
       <BackgroundActivityPopup
-        isVisible={true}
+        isVisible={isPopupVisible}
         onToggle={() => {}} // No-op since we don't want to hide it
         activities={activities}
         onRemoveActivity={removeActivity}

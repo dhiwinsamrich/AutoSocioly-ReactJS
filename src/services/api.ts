@@ -651,6 +651,35 @@ class APIService {
     
     return await response.json();
   }
+
+  // Delete activity
+  async deleteActivity(activityId: string): Promise<APIResponse> {
+    const response = await fetch(`${this.baseUrl}/api/posting/activity/${activityId}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (jsonError) {
+        try {
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
+        } catch (textError) {
+          // Fallback to status error
+        }
+      }
+      throw new Error(errorMessage);
+    }
+    
+    return await response.json();
+  }
 }
 
 export const apiService = new APIService();

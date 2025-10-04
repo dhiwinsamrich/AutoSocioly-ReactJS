@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { GlassCard } from './GlassCard';
 import { GeneratingLoader } from './GeneratingLoader';
 import { NotificationToast } from './NotificationToast';
+import { VoiceInput } from './VoiceInput';
 import { useNotification } from '../hooks/useNotification';
 import { useActivity } from '../contexts/ActivityContext';
 import { apiService } from '../services/api';
@@ -281,23 +282,21 @@ export const ContentCreationForm = () => {
             <Label htmlFor="topic" className="text-sm font-medium text-gray-700">
               What would you like to create content about?
             </Label>
-            <div className="relative">
-              <Textarea
-                id="topic"
-                placeholder="Enter your topic, idea, or let our AI suggest trending topics..."
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="min-h-[100px] pr-12 resize-none border-2 focus:border-black"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-2 text-black hover:text-gray-800"
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-            </div>
+            
+            {/* Standalone Voice Input for Transcript Display */}
+            <VoiceInput
+              onTranscript={(transcript) => setTopic(transcript)}
+              showTranscript={true}
+              isEmbedded={false}
+            />
+            
+            <Textarea
+              id="topic"
+              placeholder="Enter your topic, idea, or let our AI suggest trending topics... You can also use voice input!"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="min-h-[100px] resize-none border-2 focus:border-black"
+            />
           </div>
 
           {/* Tone Selection */}

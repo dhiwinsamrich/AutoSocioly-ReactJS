@@ -50,6 +50,7 @@ export const ActivityProvider = ({ children }: ActivityProviderProps) => {
       timestamp: new Date(),
     };
 
+    console.log('ActivityContext: Adding new activity:', newActivity);
     setActivities(prev => [newActivity, ...prev]);
     
     // Auto-remove completed activities after 10 seconds

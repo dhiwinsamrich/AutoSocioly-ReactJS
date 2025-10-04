@@ -3,7 +3,8 @@ import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ActivityDemo } from '@/components/ActivityDemo';
-import { TrendingUp, Users, Calendar, BarChart3, Plus, Eye, Clock, CheckCircle } from 'lucide-react';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { TrendingUp, Users, Calendar, BarChart3, Plus, Eye, Clock, CheckCircle, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/api';
@@ -19,12 +20,15 @@ interface RecentActivity {
   id: string;
   action: string;
   platform: string;
+  platforms?: string[];
   time: string;
   status: 'success' | 'pending' | 'error';
   content?: string;
   scheduledTime?: string;
   createdAt?: string;
   author?: string;
+  posted_by?: string;
+  post_urls?: Record<string, string>;
 }
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -41,9 +45,69 @@ export default function Dashboard() {
   const [connectedAccounts, setConnectedAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAllActivities, setShowAllActivities] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    activityId: string | null;
+    activityContent: string;
+  }>({
+    isOpen: false,
+    activityId: null,
+    activityContent: ''
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  const handleDeleteClick = (activityId: string, content: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      activityId,
+      activityContent: content
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.activityId) return;
+
+    try {
+      setIsDeleting(true);
+      const response = await apiService.deleteActivity(deleteDialog.activityId);
+      
+      if (response.success) {
+        // Remove the activity from the local state
+        setRecentActivity(prev => prev.filter(activity => activity.id !== deleteDialog.activityId));
+        
+        // Update metrics
+        setMetrics(prev => ({
+          ...prev,
+          totalPosts: Math.max(0, prev.totalPosts - 1)
+        }));
+
+        showNotification('success', 'Activity Deleted', 'The activity has been successfully deleted.');
+      } else {
+        throw new Error(response.message || 'Failed to delete activity');
+      }
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      showNotification('error', 'Delete Failed', error instanceof Error ? error.message : 'Failed to delete activity. Please try again.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialog({
+        isOpen: false,
+        activityId: null,
+        activityContent: ''
+      });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialog({
+      isOpen: false,
+      activityId: null,
+      activityContent: ''
+    });
+  };
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -107,17 +171,32 @@ export default function Dashboard() {
 
         // Generate recent activity from posting history
         const activity: RecentActivity[] = recentActivitiesData.length > 0 
-          ? recentActivitiesData.map((act: any, index: number) => ({
-              id: act.id || `activity-${index}`,
-              action: act.status === 'success' ? 'Content posted' : 'Post failed',
-              platform: act.platform || 'Unknown',
-              time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
-              status: act.status || 'success',
-              content: act.content_preview || act.content || 'Content preview not available',
-              scheduledTime: act.scheduled_time,
-              createdAt: act.created_at || act.timestamp,
-              author: act.author || 'System'
-            }))
+          ? recentActivitiesData.map((act: any, index: number) => {
+              // Handle platforms - use platforms array if available, otherwise single platform
+              const platforms = act.platforms || (act.platform ? [act.platform] : []);
+              const primaryPlatform = platforms.length > 0 ? platforms[0] : 'Unknown';
+              
+              // Handle user name - use posted_by if available, otherwise fallback
+              const userName = act.posted_by === 'user' ? 'User' : 
+                              act.posted_by === 'api_user' ? 'API User' :
+                              act.posted_by === 'system' ? 'System' :
+                              act.posted_by || 'System';
+              
+              return {
+                id: act.id || `activity-${index}`,
+                action: act.status === 'success' ? 'Content posted' : 'Post failed',
+                platform: primaryPlatform,
+                platforms: platforms,
+                time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
+                status: act.status || 'success',
+                content: act.content_preview || act.content || 'Content preview not available',
+                scheduledTime: act.scheduled_time,
+                createdAt: act.created_at || act.timestamp,
+                author: userName,
+                posted_by: act.posted_by,
+                post_urls: act.post_urls || {}
+              };
+            })
           : [];
         // If no recent activities from API, try to generate from posting history
         if (activity.length === 0) {
@@ -295,17 +374,50 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <span className="text-gray-700">platforms:</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-blue-600 font-medium capitalize">{activity.platform}</span>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {activity.platforms && activity.platforms.length > 0 ? (
+                              activity.platforms.map((platform, index) => (
+                                <span key={index} className="text-blue-600 font-medium capitalize">
+                                  {platform}
+                                  {index < activity.platforms!.length - 1 && ', '}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-blue-600 font-medium capitalize">{activity.platform}</span>
+                            )}
                           </div>
                         </div>
+                        
+                        {/* Post Links */}
+                        {activity.post_urls && Object.keys(activity.post_urls).length > 0 && (
+                          <div className="flex items-center gap-2 text-sm mt-1">
+                            <span className="text-gray-700">links:</span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {Object.entries(activity.post_urls).map(([platform, url]) => (
+                                <a
+                                  key={platform}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 underline text-xs"
+                                >
+                                  {platform}
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0 transition-colors"
+                          onClick={() => handleDeleteClick(activity.id, activity.content || activity.action)}
+                          disabled={isDeleting}
+                        >
                           <span className="sr-only">Delete</span>
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
@@ -349,5 +461,20 @@ export default function Dashboard() {
           </GlassCard>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Activity"
+        message={`Are you sure you want to delete this activity? This action cannot be undone.
+
+Content: "${deleteDialog.activityContent}"`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>;
 }

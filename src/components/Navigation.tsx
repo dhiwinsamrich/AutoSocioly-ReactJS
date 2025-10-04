@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Home, LayoutDashboard, Users, Rocket, Menu, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navItems = [{
@@ -27,7 +28,7 @@ export const Navigation = () => {
           </NavLink>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4">
             {navItems.map(({
             path,
             icon: Icon,
@@ -41,26 +42,57 @@ export const Navigation = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <Button variant="ghost" size="sm" className="md:hidden text-white hover:bg-white/10" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="md:hidden text-white hover:bg-white/10 transition-all duration-300" 
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <div className="relative w-5 h-5">
+              <Menu className={cn(
+                "h-5 w-5 absolute transition-all duration-300 ease-in-out",
+                isOpen ? "opacity-0 rotate-90 scale-0" : "opacity-100 rotate-0 scale-100"
+              )} />
+              <X className={cn(
+                "h-5 w-5 absolute transition-all duration-300 ease-in-out",
+                isOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-0"
+              )} />
+            </div>
           </Button>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && <div className="md:hidden py-4 border-t border-white/10">
+        <div className={cn(
+          "md:hidden overflow-hidden transition-all duration-300 ease-in-out",
+          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        )}>
+          <div className="py-4 border-t border-white/10">
             <div className="flex flex-col space-y-2">
               {navItems.map(({
-            path,
-            icon: Icon,
-            label
-          }) => <NavLink key={path} to={path} className={({
-            isActive
-          }) => `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10'}`} onClick={() => setIsOpen(false)}>
+                path,
+                icon: Icon,
+                label
+              }, index) => (
+                <NavLink 
+                  key={path} 
+                  to={path} 
+                  className={({ isActive }) => cn(
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 transform",
+                    isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10',
+                    isOpen ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
+                  )}
+                  style={{
+                    transitionDelay: isOpen ? `${index * 100}ms` : '0ms'
+                  }}
+                  onClick={() => setIsOpen(false)}
+                >
                   <Icon className="h-5 w-5" />
                   <span>{label}</span>
-                </NavLink>)}
+                </NavLink>
+              ))}
             </div>
-          </div>}
+          </div>
+        </div>
       </div>
     </nav>;
 };

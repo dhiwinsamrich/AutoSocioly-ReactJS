@@ -10,9 +10,19 @@ export interface ActivityItem {
   progress?: number;
   timestamp: Date;
   platform?: string;
+  platforms?: string[];
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   liveMessages?: string[];
   currentMessage?: string;
+  content?: string;
+  content_preview?: string;
+  post_urls?: Record<string, string>;
+  posted_by?: string;
+  error_message?: string;
+  created_at?: string;
+  workflow_id?: string;
+  session_id?: string;
+  activity_type?: string;
 }
 
 interface BackgroundActivityPopupProps {
@@ -31,12 +41,14 @@ export const BackgroundActivityPopup = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasNewActivities, setHasNewActivities] = useState(false);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
+  const [showNoActivityText, setShowNoActivityText] = useState(false);
 
   // Check for new activities
   useEffect(() => {
     const inProgressActivities = activities.filter(activity => 
       activity.status === 'in_progress' || activity.status === 'pending'
     );
+    console.log('BackgroundActivityPopup: Activities updated:', activities.length, 'In progress:', inProgressActivities.length);
     setHasNewActivities(inProgressActivities.length > 0);
   }, [activities]);
 
@@ -49,6 +61,20 @@ export const BackgroundActivityPopup = ({
       return () => clearInterval(interval);
     }
   }, [isExpanded, activities.length]);
+
+  // Handle smooth animation for "no activity" text
+  useEffect(() => {
+    if (isExpanded) {
+      // When expanding, show "no activity" text after popup expansion completes
+      const timer = setTimeout(() => {
+        setShowNoActivityText(true);
+      }, 600); // Wait for popup expansion animation to complete (500ms + 100ms buffer)
+      return () => clearTimeout(timer);
+    } else {
+      // When collapsing, hide "no activity" text immediately for smooth fade out
+      setShowNoActivityText(false);
+    }
+  }, [isExpanded]);
 
   const getActivityIcon = (type: ActivityItem['type'], status: ActivityItem['status']) => {
     if (status === 'completed') {
@@ -107,6 +133,7 @@ export const BackgroundActivityPopup = ({
     }
   };
 
+
   // Only show active activities (in progress or pending)
   const activeActivities = activities.filter(activity => 
     activity.status === 'in_progress' || activity.status === 'pending'
@@ -121,7 +148,8 @@ export const BackgroundActivityPopup = ({
   const allActivities = activeActivities.length > 0 ? activeActivities : recentActivities;
   const currentActivity = allActivities[currentActivityIndex] || allActivities[0];
 
-  if (!isVisible && allActivities.length === 0) return null;
+  // Show popup if there are activities OR if explicitly visible
+  if (allActivities.length === 0 && !isVisible) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -182,10 +210,10 @@ export const BackgroundActivityPopup = ({
 
           {/* Expanded State - Circular with Live Info */}
           {isExpanded && (
-            <div className="w-full h-full flex flex-col items-center justify-center p-4">
+            <div className="w-full h-full flex flex-col items-center justify-center p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
               {/* Current Activity Info */}
               {currentActivity ? (
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
                   {/* Activity Icon */}
                   <div className="flex justify-center mb-2">
                     {currentActivity.status === 'in_progress' ? (
@@ -202,12 +230,34 @@ export const BackgroundActivityPopup = ({
                      currentActivity.status === 'failed' ? 'ERROR' : 'PENDING'}
                   </div>
                   
-                  {/* Current Message */}
-                  {currentActivity.currentMessage && (
+                  {/* Current Message or Content Preview */}
+                  {(currentActivity.currentMessage || currentActivity.content_preview) && (
                     <div className="text-yellow-400 text-xs animate-pulse text-center leading-tight">
-                      {currentActivity.currentMessage.length > 40 
-                        ? currentActivity.currentMessage.substring(0, 40) + '...'
-                        : currentActivity.currentMessage
+                      {currentActivity.currentMessage || currentActivity.content_preview || ''}
+                      {(currentActivity.currentMessage || currentActivity.content_preview || '').length > 40 && '...'}
+                    </div>
+                  )}
+                  
+                  {/* Platform Information */}
+                  {currentActivity.platforms && currentActivity.platforms.length > 0 && (
+                    <div className="text-blue-400 text-xs text-center">
+                      {currentActivity.platforms.join(', ').toUpperCase()}
+                    </div>
+                  )}
+                  
+                  {/* Post URLs */}
+                  {currentActivity.post_urls && Object.keys(currentActivity.post_urls).length > 0 && (
+                    <div className="text-green-400 text-xs text-center">
+                      ✓ Posted
+                    </div>
+                  )}
+                  
+                  {/* Error Message */}
+                  {currentActivity.error_message && (
+                    <div className="text-red-400 text-xs text-center">
+                      {currentActivity.error_message.length > 30 
+                        ? currentActivity.error_message.substring(0, 30) + '...'
+                        : currentActivity.error_message
                       }
                     </div>
                   )}
@@ -233,7 +283,10 @@ export const BackgroundActivityPopup = ({
                   )}
                 </div>
               ) : (
-                <div className="text-center">
+                <div className={cn(
+                  "text-center transition-all duration-300 ease-in-out",
+                  showNoActivityText ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                )}>
                   <Activity className="w-8 h-8 text-gray-500 mx-auto mb-2" />
                   <div className="text-gray-500 text-sm">No activities</div>
                 </div>
