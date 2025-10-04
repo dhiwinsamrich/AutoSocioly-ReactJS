@@ -504,11 +504,15 @@ const ReviewContent = () => {
       } else if (editModal.type === 'image' && imagePrompt) {
         showNotification('info', 'Regenerating Image', 'Creating new image with your prompt...');
         
+        // Get the original prompt from workflow data for better context
+        const originalPrompt = workflowData?.enhanced_prompt || workflowData?.topic || 'social media content';
+        
         const response = await apiService.regenerateImage({
           workflow_id: workflowId,
           image_id: itemId,
-          new_prompt: imagePrompt
-        });
+          new_prompt: imagePrompt,
+          original_prompt: originalPrompt
+        } as { workflow_id: string; image_id: string; new_prompt?: string; original_prompt?: string });
         
         if (response.success) {
           setGeneratedImages(prev => {

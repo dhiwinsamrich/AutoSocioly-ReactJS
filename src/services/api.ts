@@ -593,7 +593,7 @@ class APIService {
   }
 
   // Regenerate image
-  async regenerateImage(data: { workflow_id: string; image_id: string; new_prompt?: string }): Promise<APIResponse> {
+  async regenerateImage(data: { workflow_id: string; image_id: string; new_prompt?: string; original_prompt?: string }): Promise<APIResponse> {
     const response = await fetch(`${this.baseUrl}/api/regenerate-image`, {
       method: 'POST',
       headers: {
