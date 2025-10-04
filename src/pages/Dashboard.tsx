@@ -52,19 +52,25 @@ export default function Dashboard() {
       console.log('Accounts response:', accountsResponse);
       
       // Fetch posting history with error handling
-      let postingHistoryResponse = { data: { history: [], posts: [] } };
+      let postingHistoryResponse: { data: { history: any[]; posts: any[] } } = { data: { history: [], posts: [] } };
       try {
-        postingHistoryResponse = await apiService.getPostingHistory();
-        console.log('Posting history response:', postingHistoryResponse);
+        const response = await apiService.getPostingHistory();
+        console.log('Posting history response:', response);
+        if (response.success && response.data) {
+          postingHistoryResponse = response as { data: { history: any[]; posts: any[] } };
+        }
       } catch (error) {
         console.error('Failed to fetch posting history:', error);
       }
       
       // Fetch scheduled posts with error handling
-      let scheduledPostsResponse = { data: { scheduled_posts: [], posts: [] } };
+      let scheduledPostsResponse: { data: { scheduled_posts: any[]; posts: any[] } } = { data: { scheduled_posts: [], posts: [] } };
       try {
-        scheduledPostsResponse = await apiService.getScheduledPosts();
-        console.log('Scheduled posts response:', scheduledPostsResponse);
+        const response = await apiService.getScheduledPosts();
+        console.log('Scheduled posts response:', response);
+        if (response.success && response.data) {
+          scheduledPostsResponse = response as { data: { scheduled_posts: any[]; posts: any[] } };
+        }
       } catch (error) {
         console.error('Failed to fetch scheduled posts:', error);
       }
@@ -88,8 +94,11 @@ export default function Dashboard() {
           try {
             const activitiesResponse = await apiService.getRecentActivities(10);
             console.log('Recent activities response:', activitiesResponse);
-            if (activitiesResponse.success && activitiesResponse.activities) {
-              recentActivitiesData = activitiesResponse.activities;
+            if (activitiesResponse.success) {
+              // Check if activities is in data or directly in response
+              recentActivitiesData = activitiesResponse.activities || 
+                                   (activitiesResponse.data && activitiesResponse.data.activities) || 
+                                   (activitiesResponse.data && Array.isArray(activitiesResponse.data) ? activitiesResponse.data : []);
             }
           } catch (error) {
             console.error('Failed to fetch recent activities:', error);
@@ -98,7 +107,7 @@ export default function Dashboard() {
         // Generate recent activity from posting history
         const activity: RecentActivity[] = recentActivitiesData.length > 0 
           ? recentActivitiesData.map((act: any, index: number) => ({
-              id: act.id || `redis-${index}`,
+              id: act.id || `activity-${index}`,
               action: act.status === 'success' ? 'Content posted' : 'Post failed',
               platform: act.platform || 'Unknown',
               time: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',

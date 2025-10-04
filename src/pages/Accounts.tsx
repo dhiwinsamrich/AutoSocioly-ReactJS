@@ -311,14 +311,14 @@ export default function Accounts() {
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-white/60" />
+                    <Calendar className="h-4 w-4 text-black" />
                     <span className="text-black/80">Member since:</span>
                     <span className="text-black font-medium">
                       {profile_details.created_at ? formatDate(profile_details.created_at) : 'N/A'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Activity className="h-4 w-4 text-white/60" />
+                    <Activity className="h-4 w-4 text-black" />
                     <span className="text-black/80">Last Active:</span>
                     <span className="text-black font-medium">
                       {profile_details.updated_at ? formatDate(profile_details.updated_at) : 'N/A'}
@@ -429,7 +429,7 @@ export default function Accounts() {
                         <div className="text-xs text-gray-600 space-y-1 mt-2">
                           <div className="flex items-center justify-between">
                             <span className="font-medium">Account ID:</span>
-                            <span className="font-mono text-gray-500">{account.id.substring(0, 12)}...</span>
+                            <span className="font-mono text-gray-500">{account.id.substring(0, 24)}</span>
                           </div>
                         </div>
                       )}

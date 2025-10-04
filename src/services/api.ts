@@ -12,6 +12,7 @@ interface APIResponse {
   history?: any[];
   scheduled_posts?: any[];
   accounts?: any;
+  activities?: any[];
   publicUrl?: string;
 }
 
