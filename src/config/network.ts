@@ -15,7 +15,7 @@ export const NETWORK_CONFIG = {
   TUNNEL_URL: 'https://poor-chairs-watch.loca.lt',
   
   // Connection mode: 'localhost', 'network', or 'tunnel'
-  CONNECTION_MODE: 'tunnel',
+  CONNECTION_MODE: 'localhost',
 };
 
 // Generate API URL based on configuration
