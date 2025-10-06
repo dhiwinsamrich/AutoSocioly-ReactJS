@@ -571,17 +571,7 @@ const handlePostAll = async () => {
     platform: approvedContent.map(item => item.platform).join(', '),
     status: 'in_progress',
     progress: 0,
-    step: 'Initializing...',
-    currentStep: 1,
-    totalSteps: 6,
-    apiCalls: 0,
-    responseTime: 0,
-    memoryUsage: '0MB',
-    networkStatus: 'connected',
-    backendStatus: 'healthy',
-    processingTime: 0,
-    retryCount: 0,
-    successRate: 0,
+    platforms: approvedContent.map(item => item.platform),
   });
   console.log('Activity created with ID:', activityId);
 
@@ -612,26 +602,9 @@ const handlePostAll = async () => {
       progress = 90;
       clearInterval(progressInterval);
     } else {
-      // Update step and statistics
-      const currentStep = Math.min(Math.floor(progress / 15) + 1, 6);
-      const steps = [
-        'Initializing...',
-        'Validating content...',
-        'Authenticating APIs...',
-        'Uploading media...',
-        'Publishing posts...',
-        'Finalizing...'
-      ];
-      
+      // Simple progress update
       updateActivity(activityId, { 
-        progress,
-        currentStep,
-        step: steps[currentStep - 1],
-        apiCalls: Math.floor(Math.random() * 5) + 1,
-        responseTime: Math.floor(Math.random() * 500) + 100,
-        memoryUsage: `${Math.floor(Math.random() * 50) + 10}MB`,
-        processingTime: Math.floor((Date.now() - startTime) / 1000),
-        successRate: Math.min(progress + Math.random() * 10, 100)
+        progress
       });
     }
   }, 800);
@@ -651,7 +624,14 @@ const handlePostAll = async () => {
     const accountMapping: Record<string, string> = {};
     connectedAccounts.forEach((account: any) => {
       if (account.platform && account.id) {
-        accountMapping[account.platform.toLowerCase()] = account.id;
+        const platformName = account.platform.toLowerCase();
+        // Map both the original platform name and the backend mapped name
+        accountMapping[platformName] = account.id;
+        // Also map the backend version for easier lookup
+        const backendMapped = mapPlatformToBackend(platformName);
+        if (backendMapped !== platformName) {
+          accountMapping[backendMapped] = account.id;
+        }
       }
     });
 
@@ -682,14 +662,16 @@ const handlePostAll = async () => {
     // Prepare platforms array with account IDs
     const platformsWithAccounts = approvedContent.map(item => {
       const platformName = item.platform.toLowerCase();
-      const accountId = accountMapping[platformName];
+      const mappedPlatform = mapPlatformToBackend(platformName);
+      // Look up account ID using the mapped platform name
+      const accountId = accountMapping[mappedPlatform];
       
       if (!accountId) {
-        throw new Error(`No account ID found for platform: ${platformName}`);
+        throw new Error(`No account ID found for platform: ${platformName} (mapped to: ${mappedPlatform})`);
       }
       
       return {
-        platform: platformName,
+        platform: mappedPlatform, // Use mapped platform name for backend
         accountId: accountId
       };
     });
@@ -725,36 +707,20 @@ const handlePostAll = async () => {
     clearCurrentMessage(activityId);
     console.log('ReviewContent: Updating activity to completed:', activityId);
     
-    // Force update activity status with a more explicit approach
+    // Update activity status to completed
     updateActivity(activityId, {
       status: 'completed',
       progress: 100,
       title: 'Content published successfully',
-      description: 'Your post is now live on all platforms',
-      step: 'Completed',
-      currentStep: 6,
-      totalSteps: 6,
-      apiCalls: Math.floor(Math.random() * 3) + 3,
-      responseTime: Math.floor(Math.random() * 200) + 50,
-      memoryUsage: `${Math.floor(Math.random() * 20) + 30}MB`,
-      processingTime: Math.floor((Date.now() - startTime) / 1000),
-      successRate: 100,
-      networkStatus: 'connected',
-      backendStatus: 'healthy',
-      lastUpdate: new Date()
+      description: 'Your post is now live on all platforms'
     });
     console.log('ReviewContent: Activity updated to completed');
     
-    // Force a re-render by updating the activity again after a short delay
+    // Force hide popup after a short delay to show completion
     setTimeout(() => {
-      console.log('ReviewContent: Force updating activity status again');
-      updateActivity(activityId, {
-        status: 'completed',
-        progress: 100,
-        title: 'Content published successfully',
-        description: 'Your post is now live on all platforms'
-      });
-    }, 200);
+      console.log('ReviewContent: Hiding popup after completion');
+      // The popup will auto-hide due to the activity being completed
+    }, 2000);
 
     console.log('Successfully posted to all platforms:', response);
     showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
@@ -777,18 +743,7 @@ const handlePostAll = async () => {
     updateActivity(activityId, {
       status: 'failed',
       title: 'Content publishing failed',
-      description: error.message || 'Failed to post content',
-      step: 'Failed',
-      currentStep: Math.floor(Math.random() * 4) + 1,
-      totalSteps: 6,
-      apiCalls: Math.floor(Math.random() * 2) + 1,
-      responseTime: Math.floor(Math.random() * 1000) + 500,
-      memoryUsage: `${Math.floor(Math.random() * 30) + 20}MB`,
-      processingTime: Math.floor((Date.now() - startTime) / 1000),
-      successRate: 0,
-      networkStatus: 'slow',
-      backendStatus: 'error',
-      retryCount: 1
+      description: error.message || 'Failed to post content'
     });
 
     console.error('Error posting content:', error);
@@ -860,12 +815,29 @@ const handlePostAll = async () => {
   const getPlatformDisplayName = (platform: string) => {
     const platformNames: { [key: string]: string } = {
       facebook: 'Facebook',
-      twitter: 'Twitter',
+      x: 'X (Twitter)',
+      twitter: 'X (Twitter)', // Support both for backward compatibility
       instagram: 'Instagram',
       linkedin: 'LinkedIn',
       tiktok: 'TikTok'
     };
     return platformNames[platform] || platform;
+  };
+
+  // Map platform names to backend format
+  const mapPlatformToBackend = (platform: string) => {
+    const platformMapping: { [key: string]: string } = {
+      'twitter': 'x',
+      'x': 'x',
+      'facebook': 'facebook',
+      'instagram': 'instagram',
+      'linkedin': 'linkedin',
+      'reddit': 'reddit',
+      'pinterest': 'pinterest',
+      'tiktok': 'tiktok',
+      'youtube': 'youtube'
+    };
+    return platformMapping[platform.toLowerCase()] || platform.toLowerCase();
   };
 
   if (loading) {
@@ -1193,28 +1165,28 @@ const handlePostAll = async () => {
                 <Button 
                   onClick={handlePostAll} 
                   disabled={isPosting}
-                  className="text-black flex items-center gap-2 bg-stone-500 hover:bg-stone-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
+                  className="text-black flex items-center gap-2 bg-blue-500 hover:bg-blue-400 disabled:opacity-100 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   {showPostAnimation ? (
                     <div className="post-loader">
-                      <span>Posting</span>
-                      <div className="post-words">
+                      <span className="text-black">Posting</span>
+                      <div className="post-words text-black">
                         {(() => {
                           const approvedContent = content.filter(item => item.status === 'approved');
                           const platforms = [...new Set(approvedContent.map(item => item.platform))];
                           return [
-                            <span key="initiated" className="post-word text-black">Post initiated...</span>,
-                            <span key="payloads" className="post-word text-black">Sending payloads...</span>,
-                            <span key="validating" className="post-word text-black">Validating...</span>,
-                            <span key="verified" className="post-word text-black">Verified!</span>
+                            <span key="initiated" className="post-word">Post initiated...</span>,
+                            <span key="payloads" className="post-word">Sending payloads...</span>,
+                            <span key="validating" className="post-word">Validating...</span>,
+                            <span key="verified" className="post-word">Verified!</span>
                           ];
                         })()}
                       </div>
                     </div>
                   ) : (
                     <>
-                      <Send className="h-4 w-4" />
-                      Post Now
+                      <Send className="h-4 w-4 text-white" />
+                      <span className="text-white">Post Now</span>
                     </>
                   )}
                 </Button>

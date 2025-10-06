@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Activity, Loader2, CheckCircle, AlertCircle, Clock, Image, FileText, Send, Brain, Sparkles, Wifi, WifiOff, Server, Database, Zap, Timer, Cpu, HardDrive, Network, RefreshCw, TrendingUp, BarChart3 } from 'lucide-react';
+import { Activity, Loader2, CheckCircle, AlertCircle, Clock, Image, FileText, Send, Brain, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ActivityItem {
@@ -23,21 +23,8 @@ export interface ActivityItem {
   workflow_id?: string;
   session_id?: string;
   activity_type?: string;
-  // Enhanced live information
+  // Simple live information
   step?: string;
-  currentStep?: number;
-  totalSteps?: number;
-  apiCalls?: number;
-  dataProcessed?: string;
-  responseTime?: number;
-  memoryUsage?: string;
-  networkStatus?: 'connected' | 'disconnected' | 'slow';
-  backendStatus?: 'healthy' | 'warning' | 'error';
-  lastUpdate?: Date;
-  processingTime?: number;
-  queuePosition?: number;
-  retryCount?: number;
-  successRate?: number;
 }
 
 interface BackgroundActivityPopupProps {
@@ -155,15 +142,15 @@ export const BackgroundActivityPopup = ({
     activity.status === 'in_progress' || activity.status === 'pending'
   );
   
-  // Show recently completed/failed activities (within last 10 seconds) or if no active ones
+  // Show recently completed/failed activities (within last 5 seconds) or if no active ones
   const recentActivities = activities
     .filter(activity => {
       if (activity.status === 'completed' || activity.status === 'failed') {
         const now = new Date();
         const activityTime = activity.timestamp;
         const timeDiff = now.getTime() - activityTime.getTime();
-        // Show completed activities for 10 seconds after completion
-        return timeDiff < 10000;
+        // Show completed activities for 5 seconds after completion
+        return timeDiff < 5000;
       }
       return false;
     })
@@ -184,8 +171,18 @@ export const BackgroundActivityPopup = ({
         step: currentActivity.step,
         progress: currentActivity.progress
       });
+      
+      // Auto-remove completed activities after 3 seconds
+      if (currentActivity.status === 'completed' || currentActivity.status === 'failed') {
+        const timeout = setTimeout(() => {
+          console.log('BackgroundActivityPopup: Auto-removing completed activity:', currentActivity.id);
+          onRemoveActivity(currentActivity.id);
+        }, 3000);
+        
+        return () => clearTimeout(timeout);
+      }
     }
-  }, [currentActivity?.status, currentActivity?.progress, currentActivity?.step]);
+  }, [currentActivity?.status, currentActivity?.progress, currentActivity?.step, currentActivity?.id, onRemoveActivity]);
 
   // Show popup if there are activities OR if explicitly visible
   if (allActivities.length === 0 && !isVisible) return null;
@@ -277,114 +274,10 @@ export const BackgroundActivityPopup = ({
                     </div>
                   )}
                   
-                  {/* Step Information */}
-                  {currentActivity.step && (
-                    <div className="text-cyan-400 text-xs text-center font-medium">
-                      {currentActivity.step}
-                    </div>
-                  )}
-                  
-                  {/* Step Progress */}
-                  {currentActivity.currentStep && currentActivity.totalSteps && (
-                    <div className="text-gray-400 text-xs text-center">
-                      Step {currentActivity.currentStep}/{currentActivity.totalSteps}
-                    </div>
-                  )}
-                  
                   {/* Platform Information */}
                   {currentActivity.platforms && currentActivity.platforms.length > 0 && (
                     <div className="text-blue-400 text-xs text-center">
                       {currentActivity.platforms.join(', ').toUpperCase()}
-                    </div>
-                  )}
-                  
-                  {/* Live Statistics Row */}
-                  <div className="flex justify-center space-x-3 text-xs">
-                    {/* API Calls */}
-                    {currentActivity.apiCalls !== undefined && (
-                      <div className="flex items-center space-x-1 text-purple-400">
-                        <Zap className="w-3 h-3" />
-                        <span>{currentActivity.apiCalls}</span>
-                      </div>
-                    )}
-                    
-                    {/* Response Time */}
-                    {currentActivity.responseTime && (
-                      <div className="flex items-center space-x-1 text-green-400">
-                        <Timer className="w-3 h-3" />
-                        <span>{currentActivity.responseTime}ms</span>
-                      </div>
-                    )}
-                    
-                    {/* Memory Usage */}
-                    {currentActivity.memoryUsage && (
-                      <div className="flex items-center space-x-1 text-orange-400">
-                        <Cpu className="w-3 h-3" />
-                        <span>{currentActivity.memoryUsage}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Network & Backend Status */}
-                  <div className="flex justify-center space-x-2 text-xs">
-                    {/* Network Status */}
-                    {currentActivity.networkStatus && (
-                      <div className={cn(
-                        "flex items-center space-x-1",
-                        currentActivity.networkStatus === 'connected' ? 'text-green-400' :
-                        currentActivity.networkStatus === 'slow' ? 'text-yellow-400' : 'text-red-400'
-                      )}>
-                        {currentActivity.networkStatus === 'connected' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                        <span className="capitalize">{currentActivity.networkStatus}</span>
-                      </div>
-                    )}
-                    
-                    {/* Backend Status */}
-                    {currentActivity.backendStatus && (
-                      <div className={cn(
-                        "flex items-center space-x-1",
-                        currentActivity.backendStatus === 'healthy' ? 'text-green-400' :
-                        currentActivity.backendStatus === 'warning' ? 'text-yellow-400' : 'text-red-400'
-                      )}>
-                        <Server className="w-3 h-3" />
-                        <span className="capitalize">{currentActivity.backendStatus}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Processing Information */}
-                  {(currentActivity.processingTime || currentActivity.queuePosition) && (
-                    <div className="flex justify-center space-x-3 text-xs text-gray-400">
-                      {currentActivity.processingTime && (
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{Math.round(currentActivity.processingTime)}s</span>
-                        </div>
-                      )}
-                      {currentActivity.queuePosition && (
-                        <div className="flex items-center space-x-1">
-                          <BarChart3 className="w-3 h-3" />
-                          <span>#{currentActivity.queuePosition}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Success Rate & Retry Info */}
-                  {(currentActivity.successRate !== undefined || currentActivity.retryCount !== undefined) && (
-                    <div className="flex justify-center space-x-3 text-xs">
-                      {currentActivity.successRate !== undefined && (
-                        <div className="flex items-center space-x-1 text-green-400">
-                          <TrendingUp className="w-3 h-3" />
-                          <span>{Math.round(currentActivity.successRate)}%</span>
-                        </div>
-                      )}
-                      {currentActivity.retryCount !== undefined && currentActivity.retryCount > 0 && (
-                        <div className="flex items-center space-x-1 text-yellow-400">
-                          <RefreshCw className="w-3 h-3" />
-                          <span>Retry {currentActivity.retryCount}</span>
-                        </div>
-                      )}
                     </div>
                   )}
                   

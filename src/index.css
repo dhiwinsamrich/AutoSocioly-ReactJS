@@ -459,7 +459,7 @@ All colors MUST be HSL. */
     display: block;
     height: 100%;
     padding-left: 6px;
-    color: white;
+    color: black;
     animation: post-spin 4s infinite;
   }
 

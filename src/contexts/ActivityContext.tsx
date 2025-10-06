@@ -53,12 +53,13 @@ export const ActivityProvider = ({ children }: ActivityProviderProps) => {
     console.log('ActivityContext: Adding new activity:', newActivity);
     setActivities(prev => [newActivity, ...prev]);
     
-    // Auto-remove completed activities after 10 seconds
+    // Auto-remove completed activities after 5 seconds
     if (activityData.status === 'completed' || activityData.status === 'failed') {
       const timeout = setTimeout(() => {
+        console.log('ActivityContext: Auto-removing completed activity:', id);
         setActivities(prev => prev.filter(activity => activity.id !== id));
         timeoutsRef.current.delete(timeout);
-      }, 10000);
+      }, 5000);
       timeoutsRef.current.add(timeout);
     }
 
@@ -74,6 +75,17 @@ export const ActivityProvider = ({ children }: ActivityProviderProps) => {
           : activity
       );
       console.log('ActivityContext: Activities after update:', updated.map(a => ({ id: a.id, status: a.status, title: a.title })));
+      
+      // If updating to completed or failed, set up auto-removal
+      if (updates.status === 'completed' || updates.status === 'failed') {
+        const timeout = setTimeout(() => {
+          console.log('ActivityContext: Auto-removing completed activity after update:', id);
+          setActivities(prev => prev.filter(activity => activity.id !== id));
+          timeoutsRef.current.delete(timeout);
+        }, 5000);
+        timeoutsRef.current.add(timeout);
+      }
+      
       return updated;
     });
   }, []);

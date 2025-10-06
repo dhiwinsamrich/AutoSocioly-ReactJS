@@ -3,10 +3,11 @@ import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ApiKeyChangeModal } from '@/components/ApiKeyChangeModal';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, User, Mail, Calendar, Activity, BarChart3, Settings, RefreshCw, TrendingUp, Image, FileText, Zap, Users } from 'lucide-react';
+import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, User, Mail, Calendar, Activity, BarChart3, Settings, RefreshCw, TrendingUp, Image, FileText, Zap, Users, Key } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faReddit, faPinterest } from '@fortawesome/free-brands-svg-icons';
 
@@ -135,6 +136,8 @@ export default function Accounts() {
   const [accountDetails, setAccountDetails] = useState<AccountDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [currentApiKey, setCurrentApiKey] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -155,6 +158,28 @@ export default function Accounts() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const fetchCurrentApiKey = async () => {
+    try {
+      const response = await apiService.request('/api/account/api-key');
+      setCurrentApiKey(response.api_key || '');
+    } catch (error) {
+      console.error('Failed to fetch current API key:', error);
+    }
+  };
+
+  const handleApiKeyChange = async (newApiKey: string) => {
+    try {
+      await apiService.request('/api/account/api-key', {
+        method: 'PUT',
+        body: JSON.stringify({ api_key: newApiKey })
+      });
+      // Refresh the current API key display
+      await fetchCurrentApiKey();
+    } catch (error) {
+      throw new Error('Failed to update API key. Please try again.');
     }
   };
 
@@ -299,6 +324,28 @@ export default function Accounts() {
               </div>
             </div>
             
+            {/* API Key Management */}
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Key className="h-4 w-4 text-black/60" />
+                  <span className="text-black/80 font-medium">GetLate API Key</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    fetchCurrentApiKey();
+                    setIsApiKeyModalOpen(true);
+                  }}
+                  className="text-black border-black/20 hover:bg-black hover:text-white"
+                >
+                  <Settings className="mr-2 h-3 w-3" />
+                  Change API Key
+                </Button>
+              </div>
+            </div>
+
             {/* Profile Details from GetLate */}
             {profile_details && Object.keys(profile_details).length > 0 && (
               <div className="mt-6 pt-4 border-t border-white/10">
@@ -468,6 +515,14 @@ export default function Accounts() {
             </div>
           </GlassCard>
         </div>
+
+        {/* API Key Change Modal */}
+        <ApiKeyChangeModal
+          isOpen={isApiKeyModalOpen}
+          onClose={() => setIsApiKeyModalOpen(false)}
+          onSave={handleApiKeyChange}
+          currentApiKey={currentApiKey}
+        />
 
       </div>
     </div>
