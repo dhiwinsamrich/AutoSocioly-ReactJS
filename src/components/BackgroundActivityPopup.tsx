@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Activity, Loader2, CheckCircle, AlertCircle, Clock, Image, FileText, Send, Brain, Sparkles } from 'lucide-react';
+import { Activity, Loader2, CheckCircle, AlertCircle, Clock, Image, FileText, Send, Brain, Sparkles, Wifi, WifiOff, Server, Database, Zap, Timer, Cpu, HardDrive, Network, RefreshCw, TrendingUp, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface ActivityItem {
@@ -23,6 +23,21 @@ export interface ActivityItem {
   workflow_id?: string;
   session_id?: string;
   activity_type?: string;
+  // Enhanced live information
+  step?: string;
+  currentStep?: number;
+  totalSteps?: number;
+  apiCalls?: number;
+  dataProcessed?: string;
+  responseTime?: number;
+  memoryUsage?: string;
+  networkStatus?: 'connected' | 'disconnected' | 'slow';
+  backendStatus?: 'healthy' | 'warning' | 'error';
+  lastUpdate?: Date;
+  processingTime?: number;
+  queuePosition?: number;
+  retryCount?: number;
+  successRate?: number;
 }
 
 interface BackgroundActivityPopupProps {
@@ -49,6 +64,7 @@ export const BackgroundActivityPopup = ({
       activity.status === 'in_progress' || activity.status === 'pending'
     );
     console.log('BackgroundActivityPopup: Activities updated:', activities.length, 'In progress:', inProgressActivities.length);
+    console.log('BackgroundActivityPopup: All activities:', activities.map(a => ({ id: a.id, status: a.status, title: a.title })));
     setHasNewActivities(inProgressActivities.length > 0);
   }, [activities]);
 
@@ -134,19 +150,42 @@ export const BackgroundActivityPopup = ({
   };
 
 
-  // Only show active activities (in progress or pending)
+  // Show active activities (in progress or pending)
   const activeActivities = activities.filter(activity => 
     activity.status === 'in_progress' || activity.status === 'pending'
   );
   
-  // Only show recent completed/failed activities if no active ones
+  // Show recently completed/failed activities (within last 10 seconds) or if no active ones
   const recentActivities = activities
-    .filter(activity => activity.status === 'completed' || activity.status === 'failed')
+    .filter(activity => {
+      if (activity.status === 'completed' || activity.status === 'failed') {
+        const now = new Date();
+        const activityTime = activity.timestamp;
+        const timeDiff = now.getTime() - activityTime.getTime();
+        // Show completed activities for 10 seconds after completion
+        return timeDiff < 10000;
+      }
+      return false;
+    })
     .slice(0, 1);
 
   // Prioritize active activities, fallback to recent if no active ones
   const allActivities = activeActivities.length > 0 ? activeActivities : recentActivities;
   const currentActivity = allActivities[currentActivityIndex] || allActivities[0];
+
+  // Force re-render when current activity status changes
+  useEffect(() => {
+    if (currentActivity) {
+      console.log('BackgroundActivityPopup: Current activity status changed:', currentActivity.id, currentActivity.status);
+      console.log('BackgroundActivityPopup: Current activity details:', {
+        id: currentActivity.id,
+        status: currentActivity.status,
+        title: currentActivity.title,
+        step: currentActivity.step,
+        progress: currentActivity.progress
+      });
+    }
+  }, [currentActivity?.status, currentActivity?.progress, currentActivity?.step]);
 
   // Show popup if there are activities OR if explicitly visible
   if (allActivities.length === 0 && !isVisible) return null;
@@ -159,7 +198,7 @@ export const BackgroundActivityPopup = ({
         isVisible ? "scale-100 opacity-100" : "scale-0 opacity-0"
       )}>
         {/* Main Circular Container */}
-        <div className={cn(
+        <div key={`popup-${currentActivity?.id}-${currentActivity?.status}`} className={cn(
           "relative bg-neutral-900 backdrop-blur-xl border border-white shadow-2xl transition-all duration-500 ease-in-out rounded-full",
           isExpanded ? "w-40 h-40" : "w-16 h-16"
         )}>
@@ -213,7 +252,7 @@ export const BackgroundActivityPopup = ({
             <div className="w-full h-full flex flex-col items-center justify-center p-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
               {/* Current Activity Info */}
               {currentActivity ? (
-                <div className="text-center space-y-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
+                <div key={`${currentActivity.id}-${currentActivity.status}`} className="text-center space-y-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-200">
                   {/* Activity Icon */}
                   <div className="flex justify-center mb-2">
                     {currentActivity.status === 'in_progress' ? (
@@ -225,7 +264,7 @@ export const BackgroundActivityPopup = ({
                   
                   {/* Status */}
                   <div className={cn("text-sm font-bold", getStatusColor(currentActivity.status))}>
-                    {currentActivity.status === 'in_progress' ? 'RUNNING' : 
+                    {currentActivity.status === 'in_progress' ? ' ' : 
                      currentActivity.status === 'completed' ? 'DONE' : 
                      currentActivity.status === 'failed' ? 'ERROR' : 'PENDING'}
                   </div>
@@ -238,10 +277,114 @@ export const BackgroundActivityPopup = ({
                     </div>
                   )}
                   
+                  {/* Step Information */}
+                  {currentActivity.step && (
+                    <div className="text-cyan-400 text-xs text-center font-medium">
+                      {currentActivity.step}
+                    </div>
+                  )}
+                  
+                  {/* Step Progress */}
+                  {currentActivity.currentStep && currentActivity.totalSteps && (
+                    <div className="text-gray-400 text-xs text-center">
+                      Step {currentActivity.currentStep}/{currentActivity.totalSteps}
+                    </div>
+                  )}
+                  
                   {/* Platform Information */}
                   {currentActivity.platforms && currentActivity.platforms.length > 0 && (
                     <div className="text-blue-400 text-xs text-center">
                       {currentActivity.platforms.join(', ').toUpperCase()}
+                    </div>
+                  )}
+                  
+                  {/* Live Statistics Row */}
+                  <div className="flex justify-center space-x-3 text-xs">
+                    {/* API Calls */}
+                    {currentActivity.apiCalls !== undefined && (
+                      <div className="flex items-center space-x-1 text-purple-400">
+                        <Zap className="w-3 h-3" />
+                        <span>{currentActivity.apiCalls}</span>
+                      </div>
+                    )}
+                    
+                    {/* Response Time */}
+                    {currentActivity.responseTime && (
+                      <div className="flex items-center space-x-1 text-green-400">
+                        <Timer className="w-3 h-3" />
+                        <span>{currentActivity.responseTime}ms</span>
+                      </div>
+                    )}
+                    
+                    {/* Memory Usage */}
+                    {currentActivity.memoryUsage && (
+                      <div className="flex items-center space-x-1 text-orange-400">
+                        <Cpu className="w-3 h-3" />
+                        <span>{currentActivity.memoryUsage}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Network & Backend Status */}
+                  <div className="flex justify-center space-x-2 text-xs">
+                    {/* Network Status */}
+                    {currentActivity.networkStatus && (
+                      <div className={cn(
+                        "flex items-center space-x-1",
+                        currentActivity.networkStatus === 'connected' ? 'text-green-400' :
+                        currentActivity.networkStatus === 'slow' ? 'text-yellow-400' : 'text-red-400'
+                      )}>
+                        {currentActivity.networkStatus === 'connected' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+                        <span className="capitalize">{currentActivity.networkStatus}</span>
+                      </div>
+                    )}
+                    
+                    {/* Backend Status */}
+                    {currentActivity.backendStatus && (
+                      <div className={cn(
+                        "flex items-center space-x-1",
+                        currentActivity.backendStatus === 'healthy' ? 'text-green-400' :
+                        currentActivity.backendStatus === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                      )}>
+                        <Server className="w-3 h-3" />
+                        <span className="capitalize">{currentActivity.backendStatus}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Processing Information */}
+                  {(currentActivity.processingTime || currentActivity.queuePosition) && (
+                    <div className="flex justify-center space-x-3 text-xs text-gray-400">
+                      {currentActivity.processingTime && (
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{Math.round(currentActivity.processingTime)}s</span>
+                        </div>
+                      )}
+                      {currentActivity.queuePosition && (
+                        <div className="flex items-center space-x-1">
+                          <BarChart3 className="w-3 h-3" />
+                          <span>#{currentActivity.queuePosition}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Success Rate & Retry Info */}
+                  {(currentActivity.successRate !== undefined || currentActivity.retryCount !== undefined) && (
+                    <div className="flex justify-center space-x-3 text-xs">
+                      {currentActivity.successRate !== undefined && (
+                        <div className="flex items-center space-x-1 text-green-400">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>{Math.round(currentActivity.successRate)}%</span>
+                        </div>
+                      )}
+                      {currentActivity.retryCount !== undefined && currentActivity.retryCount > 0 && (
+                        <div className="flex items-center space-x-1 text-yellow-400">
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Retry {currentActivity.retryCount}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   

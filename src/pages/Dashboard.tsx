@@ -182,6 +182,13 @@ export default function Dashboard() {
                               act.posted_by === 'system' ? 'System' :
                               act.posted_by || 'System';
               
+              // Debug logging for post URLs
+              console.log(`Activity ${act.id || index}:`, {
+                post_urls: act.post_urls,
+                platforms: platforms,
+                status: act.status
+              });
+              
               return {
                 id: act.id || `activity-${index}`,
                 action: act.status === 'success' ? 'Content posted' : 'Post failed',
@@ -318,9 +325,9 @@ export default function Dashboard() {
             </GlassCard>
 
             {/* Activity Demo */}
-            <GlassCard className="p-6">
+            {/* <GlassCard className="p-6">
               <ActivityDemo />
-            </GlassCard>
+            </GlassCard> */}
           </div>
 
           {/* Right Column - Recent Activity */}
@@ -433,33 +440,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Account Status */}
-        <div className="mt-8">
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Connected Accounts</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {loading ? <div className="col-span-full text-center py-8">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-32 mx-auto mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-24 mx-auto"></div>
-                  </div>
-                </div> : connectedAccounts.length > 0 ? connectedAccounts.map(account => <div key={account.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-black rounded-full" />
-                      <span className="font-medium text-gray-900 capitalize">{account.platform}</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-800">
-                      Connected
-                    </Badge>
-                  </div>) : <div className="col-span-full text-center py-8">
-                  <p className="text-gray-500">No connected accounts found</p>
-                  <Button variant="outline" className="mt-4" onClick={() => navigate('/accounts')}>
-                    Connect Accounts
-                  </Button>
-                </div>}
-            </div>
-          </GlassCard>
-        </div>
       </div>
 
       {/* Confirmation Dialog */}

@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { GlassCard } from './GlassCard';
-import { GeneratingLoader } from './GeneratingLoader';
 import { NotificationToast } from './NotificationToast';
 import { VoiceInput } from './VoiceInput';
 import { useNotification } from '../hooks/useNotification';
@@ -250,7 +249,6 @@ export const ContentCreationForm = () => {
 
   return (
     <>
-      <GeneratingLoader isVisible={isLoading} text="GENERATING" />
       
       {notifications.map((notification) => (
         <NotificationToast

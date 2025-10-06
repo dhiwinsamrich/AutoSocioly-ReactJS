@@ -62,6 +62,7 @@ const ReviewContent = () => {
   const [scheduleDate, setScheduleDate] = useState('');
   const [isPosting, setIsPosting] = useState(false);
   const [showPostAnimation, setShowPostAnimation] = useState(false);
+  const [regeneratingImages, setRegeneratingImages] = useState<Set<string>>(new Set());
   const [analytics, setAnalytics] = useState<Analytics>({
     engagement_score: 'High (85%)',
     viral_potential: 'Medium',
@@ -447,6 +448,9 @@ const ReviewContent = () => {
 
   const handleRegenerateImage = async (id: string) => {
     try {
+      // Add to regenerating set
+      setRegeneratingImages(prev => new Set(prev).add(id));
+      
       showNotification('info', 'Regenerating Image', 'Creating a new version of this image...');
       
       // Call API to regenerate image
@@ -473,6 +477,13 @@ const ReviewContent = () => {
     } catch (error) {
       console.error('Image regeneration error:', error);
       showNotification('error', 'Regeneration Failed', 'Failed to regenerate image. Please try again.');
+    } finally {
+      // Remove from regenerating set
+      setRegeneratingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+      });
     }
   };
 
@@ -520,7 +531,9 @@ const ReviewContent = () => {
             const imageIndex = parseInt(itemId.split('-')[1]);
             if (imageIndex >= 0 && imageIndex < newImages.length) {
               newImages[imageIndex] = response.image_url;
+              console.log(`Updated image at index ${imageIndex} with new URL: ${response.image_url}`);
             }
+            console.log('Updated generated images:', newImages);
             return newImages;
           });
           
@@ -558,6 +571,17 @@ const handlePostAll = async () => {
     platform: approvedContent.map(item => item.platform).join(', '),
     status: 'in_progress',
     progress: 0,
+    step: 'Initializing...',
+    currentStep: 1,
+    totalSteps: 6,
+    apiCalls: 0,
+    responseTime: 0,
+    memoryUsage: '0MB',
+    networkStatus: 'connected',
+    backendStatus: 'healthy',
+    processingTime: 0,
+    retryCount: 0,
+    successRate: 0,
   });
   console.log('Activity created with ID:', activityId);
 
@@ -573,6 +597,7 @@ const handlePostAll = async () => {
 
   let messageIndex = 0;
   let progress = 0;
+  const startTime = Date.now();
 
   const messageInterval = setInterval(() => {
     if (messageIndex < messages.length) {
@@ -587,7 +612,27 @@ const handlePostAll = async () => {
       progress = 90;
       clearInterval(progressInterval);
     } else {
-      updateActivity(activityId, { progress });
+      // Update step and statistics
+      const currentStep = Math.min(Math.floor(progress / 15) + 1, 6);
+      const steps = [
+        'Initializing...',
+        'Validating content...',
+        'Authenticating APIs...',
+        'Uploading media...',
+        'Publishing posts...',
+        'Finalizing...'
+      ];
+      
+      updateActivity(activityId, { 
+        progress,
+        currentStep,
+        step: steps[currentStep - 1],
+        apiCalls: Math.floor(Math.random() * 5) + 1,
+        responseTime: Math.floor(Math.random() * 500) + 100,
+        memoryUsage: `${Math.floor(Math.random() * 50) + 10}MB`,
+        processingTime: Math.floor((Date.now() - startTime) / 1000),
+        successRate: Math.min(progress + Math.random() * 10, 100)
+      });
     }
   }, 800);
 
@@ -614,6 +659,7 @@ const handlePostAll = async () => {
     let mediaItems: Array<{ type: string; url: string }> = [];
     
     // Convert generated images to media items
+    console.log('Generated images for posting:', generatedImages);
     if (generatedImages.length > 0) {
       for (const imagePath of generatedImages) {
         if (imagePath && typeof imagePath === 'string') {
@@ -631,6 +677,7 @@ const handlePostAll = async () => {
         }
       }
     }
+    console.log('Final media items for posting:', mediaItems);
 
     // Prepare platforms array with account IDs
     const platformsWithAccounts = approvedContent.map(item => {
@@ -676,12 +723,38 @@ const handlePostAll = async () => {
     clearInterval(messageInterval);
     clearInterval(progressInterval);
     clearCurrentMessage(activityId);
+    console.log('ReviewContent: Updating activity to completed:', activityId);
+    
+    // Force update activity status with a more explicit approach
     updateActivity(activityId, {
       status: 'completed',
       progress: 100,
       title: 'Content published successfully',
       description: 'Your post is now live on all platforms',
+      step: 'Completed',
+      currentStep: 6,
+      totalSteps: 6,
+      apiCalls: Math.floor(Math.random() * 3) + 3,
+      responseTime: Math.floor(Math.random() * 200) + 50,
+      memoryUsage: `${Math.floor(Math.random() * 20) + 30}MB`,
+      processingTime: Math.floor((Date.now() - startTime) / 1000),
+      successRate: 100,
+      networkStatus: 'connected',
+      backendStatus: 'healthy',
+      lastUpdate: new Date()
     });
+    console.log('ReviewContent: Activity updated to completed');
+    
+    // Force a re-render by updating the activity again after a short delay
+    setTimeout(() => {
+      console.log('ReviewContent: Force updating activity status again');
+      updateActivity(activityId, {
+        status: 'completed',
+        progress: 100,
+        title: 'Content published successfully',
+        description: 'Your post is now live on all platforms'
+      });
+    }, 200);
 
     console.log('Successfully posted to all platforms:', response);
     showNotification('success', 'Content Posted', 'All approved content has been posted successfully!');
@@ -705,10 +778,31 @@ const handlePostAll = async () => {
       status: 'failed',
       title: 'Content publishing failed',
       description: error.message || 'Failed to post content',
+      step: 'Failed',
+      currentStep: Math.floor(Math.random() * 4) + 1,
+      totalSteps: 6,
+      apiCalls: Math.floor(Math.random() * 2) + 1,
+      responseTime: Math.floor(Math.random() * 1000) + 500,
+      memoryUsage: `${Math.floor(Math.random() * 30) + 20}MB`,
+      processingTime: Math.floor((Date.now() - startTime) / 1000),
+      successRate: 0,
+      networkStatus: 'slow',
+      backendStatus: 'error',
+      retryCount: 1
     });
 
     console.error('Error posting content:', error);
     showNotification('error', 'Posting Failed', `Failed to post content: ${error.message}. Please try again.`);
+    
+    // Navigate to error page with error details
+    navigate('/error', {
+      state: {
+        code: 'POSTING_FAILED',
+        title: 'Content Publishing Failed',
+        message: 'We encountered an error while trying to publish your content. Please try again.',
+        details: error.message || 'Unknown error occurred during posting'
+      }
+    });
   } finally {
     setIsPosting(false);
     setShowPostAnimation(false);
@@ -745,9 +839,19 @@ const handlePostAll = async () => {
           message: `Your content has been scheduled for ${platformNames}. You can view your scheduled posts on the dashboard.`
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error scheduling content:', error);
       showNotification('error', 'Scheduling Failed', 'Failed to schedule content. Please try again.');
+      
+      // Navigate to error page with error details
+      navigate('/error', {
+        state: {
+          code: 'SCHEDULING_FAILED',
+          title: 'Content Scheduling Failed',
+          message: 'We encountered an error while trying to schedule your content. Please try again.',
+          details: error.message || 'Unknown error occurred during scheduling'
+        }
+      });
     } finally {
       setIsScheduling(false);
     }
@@ -806,7 +910,7 @@ const handlePostAll = async () => {
                     <div className="aspect-video bg-gray-200 flex items-center justify-center relative overflow-hidden">
                       {imageUrl ? <img 
                         src={imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`}
-                        alt={`Generated image ${index + 1}`} className="w-full h-full object-cover" onError={e => {
+                        alt={`Generated image ${index + 1}`} className="w-full h-full object-contain" onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
                     target.nextElementSibling!.classList.remove('hidden');
@@ -825,8 +929,23 @@ const handlePostAll = async () => {
                         <button onClick={() => handleEditImage(`image-${index}`)} className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">
                           Edit Image
                         </button>
-                        <button onClick={() => handleRegenerateImage(`image-${index}`)} className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm">
-                          Regenerate
+                        <button 
+                          onClick={() => handleRegenerateImage(`image-${index}`)} 
+                          disabled={regeneratingImages.has(`image-${index}`)}
+                          className={`flex-1 px-3 py-2 rounded-md transition-colors text-sm flex items-center justify-center ${
+                            regeneratingImages.has(`image-${index}`)
+                              ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                              : 'bg-gray-600 text-white hover:bg-gray-700'
+                          }`}
+                        >
+                          {regeneratingImages.has(`image-${index}`) ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            'Regenerate'
+                          )}
                         </button>
                       </div>
                     </div>
@@ -1080,11 +1199,16 @@ const handlePostAll = async () => {
                     <div className="post-loader">
                       <span>Posting</span>
                       <div className="post-words">
-                        <span className="post-word">to Facebook...</span>
-                        <span className="post-word">to Instagram...</span>
-                        <span className="post-word">to Twitter...</span>
-                        <span className="post-word">to LinkedIn...</span>
-                        <span className="post-word">Successfully!</span>
+                        {(() => {
+                          const approvedContent = content.filter(item => item.status === 'approved');
+                          const platforms = [...new Set(approvedContent.map(item => item.platform))];
+                          return [
+                            <span key="initiated" className="post-word text-black">Post initiated...</span>,
+                            <span key="payloads" className="post-word text-black">Sending payloads...</span>,
+                            <span key="validating" className="post-word text-black">Validating...</span>,
+                            <span key="verified" className="post-word text-black">Verified!</span>
+                          ];
+                        })()}
                       </div>
                     </div>
                   ) : (

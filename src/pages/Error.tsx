@@ -2,7 +2,7 @@ import { Navigation } from '@/components/Navigation';
 import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 interface ErrorProps {
   code?: string;
   title?: string;
@@ -16,6 +16,14 @@ export default function Error({
   details
 }: ErrorProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get error details from navigation state
+  const state = location.state as any;
+  const errorCode = state?.code || code;
+  const errorTitle = state?.title || title;
+  const errorMessage = state?.message || message;
+  const errorDetails = state?.details || details;
   return <div className="min-h-screen flex items-center justify-center p-4 bg-neutral-950">
       <GlassCard className="p-12 text-center max-w-md w-full">
         <div className="mb-6">
@@ -23,12 +31,12 @@ export default function Error({
             <AlertTriangle className="h-10 w-10 text-white" />
           </div>
           
-          <div className="text-4xl font-bold text-gray-900 mb-2">{code}</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">{title}</h1>
-          <p className="text-gray-600 text-lg mb-4">{message}</p>
+          <div className="text-4xl font-bold text-gray-900 mb-2">{errorCode}</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">{errorTitle}</h1>
+          <p className="text-gray-600 text-lg mb-4">{errorMessage}</p>
           
-          {details && <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-              <p className="text-sm text-blue-700">{details}</p>
+          {errorDetails && <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-blue-700">{errorDetails}</p>
             </div>}
         </div>
         

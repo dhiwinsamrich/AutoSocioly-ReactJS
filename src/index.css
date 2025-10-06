@@ -464,29 +464,23 @@ All colors MUST be HSL. */
   }
 
   @keyframes post-spin {
-    10% {
-      transform: translateY(-102%);
+    0% {
+      transform: translateY(0%);
     }
-    25% {
+    20% {
       transform: translateY(-100%);
     }
-    35% {
-      transform: translateY(-202%);
-    }
-    50% {
+    40% {
       transform: translateY(-200%);
     }
     60% {
-      transform: translateY(-302%);
-    }
-    75% {
       transform: translateY(-300%);
     }
-    85% {
-      transform: translateY(-402%);
+    80% {
+      transform: translateY(-400%);
     }
     100% {
-      transform: translateY(-400%);
+      transform: translateY(-500%);
     }
   }
 

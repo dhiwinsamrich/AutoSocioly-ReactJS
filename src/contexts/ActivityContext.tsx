@@ -66,13 +66,16 @@ export const ActivityProvider = ({ children }: ActivityProviderProps) => {
   }, []);
 
   const updateActivity = useCallback((id: string, updates: Partial<ActivityItem>) => {
-    setActivities(prev => 
-      prev.map(activity => 
+    console.log('ActivityContext: Updating activity:', id, 'with updates:', updates);
+    setActivities(prev => {
+      const updated = prev.map(activity => 
         activity.id === id 
           ? { ...activity, ...updates }
           : activity
-      )
-    );
+      );
+      console.log('ActivityContext: Activities after update:', updated.map(a => ({ id: a.id, status: a.status, title: a.title })));
+      return updated;
+    });
   }, []);
 
   const addLiveMessage = useCallback((id: string, message: string) => {

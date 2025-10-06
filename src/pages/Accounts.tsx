@@ -93,7 +93,7 @@ const platformColors = {
 
 const platformGlowColors = {
   facebook: 'shadow-[0_0_30px_rgba(24,119,242,0.6)]',
-  x: 'shadow-[0_0_30px_rgba(20,23,26,0.6)]',
+  x: 'shadow-[0_0_30px_rgba(0,0,0,0.8)]',
   instagram: 'shadow-[0_0_30px_rgba(228,64,95,0.6)]',
   linkedin: 'shadow-[0_0_30px_rgba(10,102,194,0.6)]',
   reddit: 'shadow-[0_0_30px_rgba(255,69,0,0.6)]',
@@ -102,7 +102,7 @@ const platformGlowColors = {
 
 const platformBorderGlow = {
   facebook: 'border-[#1877F2] shadow-[0_0_20px_rgba(24,119,242,0.5)]',
-  x: 'border-[#14171A] shadow-[0_0_20px_rgba(20,23,26,0.5)]',
+  x: 'border-[#000000] shadow-[0_0_20px_rgba(0,0,0,0.7)]',
   instagram: 'border-[#E4405F] shadow-[0_0_20px_rgba(228,64,95,0.5)]',
   linkedin: 'border-[#0A66C2] shadow-[0_0_20px_rgba(10,102,194,0.5)]',
   reddit: 'border-[#FF4500] shadow-[0_0_20px_rgba(255,69,0,0.5)]',
@@ -275,7 +275,7 @@ export default function Accounts() {
               onClick={refreshUsageStats} 
               disabled={refreshing}
               variant="outline"
-              className="text-white border-white/20 hover:bg-white/10"
+              className="text-white border-white/20 hover:bg-white hover:text-black"
             >
               <RefreshCw className={`mr-2 h-4 w-4 text-black ${refreshing ? 'animate-spin' : ''}`} />
               <span className="text-black">Refresh</span>
@@ -382,7 +382,13 @@ export default function Accounts() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {['instagram', 'facebook', 'x', 'reddit', 'pinterest', 'linkedin'].map(platformKey => {
-                const account = connected_accounts.find(acc => acc.platform === platformKey);
+                // Try multiple possible platform keys for X/Twitter
+                const possibleKeys = platformKey === 'x' ? ['x', 'twitter', 'X', 'Twitter'] : [platformKey];
+                const account = connected_accounts.find(acc => 
+                  possibleKeys.some(key => 
+                    acc.platform?.toLowerCase() === key.toLowerCase()
+                  )
+                );
                 const isConnected = account?.connected || false;
                 const borderGlow = isConnected ? platformBorderGlow[platformKey as keyof typeof platformBorderGlow] : '';
                 
