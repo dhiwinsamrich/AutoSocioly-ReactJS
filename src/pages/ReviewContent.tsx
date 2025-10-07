@@ -553,9 +553,31 @@ const handlePostAll = async () => {
   setIsPosting(true);
   setShowPostAnimation(true);
   
+  // Get approved content - but only for platforms that were originally selected
   const approvedContent = content.filter(item => item.status === 'approved');
   if (approvedContent.length === 0) {
     showNotification('info', 'No Content', 'Please approve at least one piece of content');
+    setIsPosting(false);
+    setShowPostAnimation(false);
+    return;
+  }
+
+  // Get the original platforms from workflow data to ensure we only post to selected platforms
+  const originalPlatforms = workflowData?.platforms || [];
+  if (originalPlatforms.length === 0) {
+    showNotification('error', 'No Platforms', 'No platforms selected for this content');
+    setIsPosting(false);
+    setShowPostAnimation(false);
+    return;
+  }
+
+  // Filter approved content to only include platforms that were originally selected
+  const filteredApprovedContent = approvedContent.filter(item => 
+    originalPlatforms.includes(item.platform.toLowerCase())
+  );
+
+  if (filteredApprovedContent.length === 0) {
+    showNotification('error', 'No Approved Content', 'No approved content found for the selected platforms');
     setIsPosting(false);
     setShowPostAnimation(false);
     return;
@@ -567,11 +589,11 @@ const handlePostAll = async () => {
   const activityId = addActivity({
     type: 'posting',
     title: 'Publishing content',
-    description: `Posting to ${approvedContent.map(item => item.platform).join(', ')}`,
-    platform: approvedContent.map(item => item.platform).join(', '),
+    description: `Posting to ${filteredApprovedContent.map(item => item.platform).join(', ')}`,
+    platform: filteredApprovedContent.map(item => item.platform).join(', '),
     status: 'in_progress',
     progress: 0,
-    platforms: approvedContent.map(item => item.platform),
+    platforms: filteredApprovedContent.map(item => item.platform),
   });
   console.log('Activity created with ID:', activityId);
 
@@ -659,8 +681,8 @@ const handlePostAll = async () => {
     }
     console.log('Final media items for posting:', mediaItems);
 
-    // Prepare platforms array with account IDs
-    const platformsWithAccounts = approvedContent.map(item => {
+    // Prepare platforms array with account IDs - only for filtered approved content
+    const platformsWithAccounts = filteredApprovedContent.map(item => {
       const platformName = item.platform.toLowerCase();
       const mappedPlatform = mapPlatformToBackend(platformName);
       // Look up account ID using the mapped platform name
@@ -676,8 +698,8 @@ const handlePostAll = async () => {
       };
     });
 
-    // Combine all content into one string
-    const firstApprovedContent = approvedContent[0];
+    // Combine all content into one string - use filtered content
+    const firstApprovedContent = filteredApprovedContent[0];
     const contentText = firstApprovedContent.content;
     const hashtagsText = firstApprovedContent.hashtags.map(tag => `#${tag}`).join(' ');
     const fullContent = contentText + (hashtagsText ? `\n\n${hashtagsText}` : '');
