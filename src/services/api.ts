@@ -44,16 +44,17 @@ class APIService {
     this.baseUrl = API_BASE_URL;
   }
 
-  // Enhanced method to get full image URL with proper ngrok conversion handling
+  // Enhanced method to get full image URL with proper server hosting
   getImageUrl(imagePath: string): string {
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
     
-    // For local paths, return as-is since backend will handle ngrok conversion
+    // For static paths, construct full URL for server hosting
     if (imagePath.startsWith('/static/') || imagePath.startsWith('static/')) {
-      // Return the path as-is - backend will convert to ngrok URL during posting
-      return imagePath;
+      // Ensure path starts with /static/
+      const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      return `${this.baseUrl}${normalizedPath}`;
     }
     
     if (imagePath.startsWith('/')) {

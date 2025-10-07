@@ -11,6 +11,7 @@ import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, Bar
 import { useNotification } from '@/hooks/useNotification';
 import { useActivity } from '@/contexts/ActivityContext';
 import { EditModal } from '@/components/EditModal';
+import { NETWORK_CONFIG } from '@/config/network';
 
 interface ContentReview {
   id: string;
@@ -903,7 +904,7 @@ const handlePostAll = async () => {
                 {generatedImages.length > 0 ? generatedImages.map((imageUrl, index) => <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="aspect-video bg-gray-200 flex items-center justify-center relative overflow-hidden">
                       {imageUrl ? <img 
-                        src={imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`}
+                        src={apiService.getImageUrl(imageUrl)}
                         alt={`Generated image ${index + 1}`} className="w-full h-full object-contain" onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
