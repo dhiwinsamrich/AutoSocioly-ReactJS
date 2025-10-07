@@ -2,20 +2,20 @@
 // Update this file to switch between localhost, network access, and tunnel access
 
 export const NETWORK_CONFIG = {
-  // Your machine's IP address (update this if your IP changes)
-  MACHINE_IP: '192.168.1.2',
+  // Your server's IP address (update this if your IP changes)
+  MACHINE_IP: '148.113.16.40',
   
   // Backend port
-  BACKEND_PORT: 8000,
+  BACKEND_PORT: 8023,
   
   // Frontend port
-  FRONTEND_PORT: 8080,
+  FRONTEND_PORT: 3183,
   
   // Localtunnel URL for public access
   TUNNEL_URL: 'https://poor-chairs-watch.loca.lt',
   
   // Connection mode: 'localhost', 'network', or 'tunnel'
-  CONNECTION_MODE: 'localhost',
+  CONNECTION_MODE: 'network',
 };
 
 // Generate API URL based on configuration
