@@ -39,7 +39,9 @@ RUN apk add --no-cache \
     python3 \
     make \
     g++ \
-    git
+    git \
+    curl \
+    bash
 
 # Copy package files
 COPY package*.json ./
@@ -106,6 +108,7 @@ RUN apk add --no-cache \
     curl \
     tzdata \
     ca-certificates \
+    dumb-init \
     && rm -rf /var/cache/apk/*
 
 # Create nginx user and group
@@ -151,8 +154,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 80
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start nginx with dumb-init for proper signal handling
+CMD ["dumb-init", "nginx", "-g", "daemon off;"]
 
 # Development stage - Includes development tools and hot reload
 FROM node:18-alpine as development
@@ -295,5 +298,5 @@ LABEL org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.version="${VERSION}"
 
-# Default command
-CMD ["nginx", "-g", "daemon off;"]
+# Default command with dumb-init
+CMD ["dumb-init", "nginx", "-g", "daemon off;"]

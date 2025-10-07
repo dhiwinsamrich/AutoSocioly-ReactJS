@@ -1,30 +1,35 @@
 # AutoSocioly Frontend
 
-A modern React-based frontend for the AutoSocioly social media automation platform. Built with Vite, TypeScript, and shadcn/ui components.
+A modern React-based frontend for the AutoSocioly social media automation platform. Built with Vite, TypeScript, and shadcn/ui components for AI-powered social media content generation and management.
 
 ## 🌟 Features
 
 ### 🎨 Modern UI/UX
 - **Responsive Design**: Mobile-first approach with Tailwind CSS
 - **Component Library**: shadcn/ui components for consistent design
-- **Dark Mode**: Built-in dark/light theme support
+- **Dark Mode**: Built-in dark/light theme support with next-themes
 - **Accessibility**: WCAG compliant with keyboard navigation
-- **Animations**: Smooth transitions and micro-interactions
+- **Animations**: Smooth transitions and micro-interactions with Tailwind CSS Animate
+- **Glassmorphism**: Modern glass card design components
 
 ### 📱 Pages & Features
-- **Dashboard**: Overview of social media performance and analytics
-- **Content Creation**: AI-powered content generation interface
-- **Account Management**: Connect and manage social media accounts
-- **Content Review**: Preview and edit generated content
-- **Success Tracking**: Monitor posting status and results
+- **Dashboard**: Overview of social media performance and analytics with Recharts
+- **Content Creation**: AI-powered content generation interface with voice input
+- **Account Management**: Connect and manage social media accounts (Facebook, Instagram, LinkedIn, Pinterest, Reddit, X/Twitter)
+- **Content Review**: Preview and edit generated content before posting
+- **Success Tracking**: Monitor posting status and results with real-time updates
+- **Activity Tracking**: Background activity monitoring and notifications
 
 ### 🔧 Technical Features
 - **TypeScript**: Full type safety and better developer experience
-- **React Router**: Client-side routing with protected routes
-- **State Management**: Zustand for global state management
-- **API Integration**: RESTful API communication with backend
-- **Form Handling**: React Hook Form with Zod validation
-- **Toast Notifications**: User feedback and error handling
+- **React Router**: Client-side routing with protected routes and page transitions
+- **State Management**: Zustand for global state management with persistence
+- **API Integration**: RESTful API communication with React Query for caching
+- **Form Handling**: React Hook Form with Zod validation and error handling
+- **Toast Notifications**: Sonner toast system with custom notifications
+- **Voice Input**: Web Speech API integration for voice-to-text content creation
+- **Real-time Updates**: WebSocket-like activity tracking and notifications
+- **Responsive Design**: Mobile-first with custom hooks for mobile detection
 
 ## 🚀 Quick Start
 
@@ -159,17 +164,20 @@ frontend/
 ### Technology Stack
 
 - **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite 5
-- **Styling**: Tailwind CSS 3
-- **UI Components**: shadcn/ui (Radix UI + Tailwind)
-- **Routing**: React Router DOM 6
-- **State Management**: Zustand 5
-- **Forms**: React Hook Form + Zod validation
-- **HTTP Client**: Fetch API with custom service layer
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **Animations**: Tailwind CSS Animate
-- **Development**: ESLint, TypeScript, Hot Module Replacement
+- **Build Tool**: Vite 5 with SWC for fast compilation
+- **Styling**: Tailwind CSS 3 with custom design system
+- **UI Components**: shadcn/ui (Radix UI + Tailwind) with 50+ components
+- **Routing**: React Router DOM 6 with page transitions
+- **State Management**: Zustand 5 with persistence
+- **Data Fetching**: TanStack React Query 5 for server state
+- **Forms**: React Hook Form + Zod validation with custom resolvers
+- **HTTP Client**: Fetch API with custom service layer and error handling
+- **Icons**: Lucide React with FontAwesome integration
+- **Charts**: Recharts for analytics and data visualization
+- **Animations**: Tailwind CSS Animate with custom transitions
+- **Voice**: Web Speech API with custom voice input component
+- **Notifications**: Sonner toast system with custom styling
+- **Development**: ESLint, TypeScript, Hot Module Replacement, Lovable Tagger
 
 ## 🎨 UI Components
 
@@ -194,11 +202,18 @@ npx shadcn-ui@latest add button
 ```
 
 ### Custom Components
-- **GlassCard**: Glassmorphism card component
-- **ContentCreationForm**: AI content generation form
-- **GeneratingLoader**: Loading animation for AI generation
-- **NotificationToast**: Toast notification system
-- **PageTransition**: Smooth page transitions
+- **GlassCard**: Glassmorphism card component with modern styling
+- **ContentCreationForm**: AI content generation form with voice input
+- **VoiceInput**: Web Speech API integration for voice-to-text
+- **ApiKeyChangeModal**: Modal for updating API keys and settings
+- **BackgroundActivityPopup**: Real-time activity monitoring popup
+- **ActivityDemo**: Demo component for showcasing activity tracking
+- **EditModal**: Modal for editing generated content
+- **InitialAppLoader**: App initialization loading component
+- **Navigation**: Main navigation with responsive design
+- **NotificationToast**: Toast notification system with Sonner
+- **PageLoader**: Page loading states and transitions
+- **PageTransition**: Smooth page transitions with animations
 
 ## 🔧 Configuration
 

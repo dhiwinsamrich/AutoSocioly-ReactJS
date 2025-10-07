@@ -20,6 +20,10 @@ services:
     environment:
       - NODE_ENV=production
       - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+      - VITE_APP_NAME=AutoSocioly
+      - VITE_APP_VERSION=${VERSION:-1.0.0}
+      - VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS:-true}
+      - VITE_ENABLE_DEBUG=${VITE_ENABLE_DEBUG:-false}
     networks:
       - autosocioly-network
     healthcheck:
@@ -61,12 +65,16 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+      - VITE_APP_NAME=AutoSocioly
+      - VITE_APP_VERSION=${VERSION:-1.0.0}
+      - VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS:-false}
+      - VITE_ENABLE_DEBUG=${VITE_ENABLE_DEBUG:-true}
     volumes:
       - .:/app
       - /app/node_modules
     networks:
       - autosocioly-dev
-    command: npm run dev -- --host 0.0.0.0
+    command: npm run dev -- --host 0.0.0.0 --port 5173
     profiles:
       - dev
 
@@ -80,6 +88,10 @@ services:
     environment:
       - NODE_ENV=test
       - VITE_API_URL=http://backend:8000
+      - VITE_APP_NAME=AutoSocioly
+      - VITE_APP_VERSION=${VERSION:-1.0.0}
+      - VITE_ENABLE_ANALYTICS=false
+      - VITE_ENABLE_DEBUG=false
     volumes:
       - .:/app
       - /app/node_modules
