@@ -50,18 +50,27 @@ class APIService {
       return imagePath;
     }
     
+    // Normalize baseUrl to ensure no trailing slash
+    const baseUrl = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    
     // For static paths, construct full URL for server hosting
     if (imagePath.startsWith('/static/') || imagePath.startsWith('static/')) {
-      // Ensure path starts with /static/
+      // Ensure path starts with /static/ (single slash)
       const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-      return `${this.baseUrl}${normalizedPath}`;
+      const fullUrl = `${baseUrl}${normalizedPath}`;
+      console.log('Generated image URL:', { imagePath, baseUrl, normalizedPath, fullUrl });
+      return fullUrl;
     }
     
     if (imagePath.startsWith('/')) {
-      return `${this.baseUrl}${imagePath}`;
+      const fullUrl = `${baseUrl}${imagePath}`;
+      console.log('Generated image URL:', { imagePath, baseUrl, fullUrl });
+      return fullUrl;
     }
     
-    return `${this.baseUrl}/${imagePath}`;
+    const fullUrl = `${baseUrl}/${imagePath}`;
+    console.log('Generated image URL:', { imagePath, baseUrl, fullUrl });
+    return fullUrl;
   }
 
   // Method to explicitly convert local paths to public URLs via backend

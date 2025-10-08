@@ -92,7 +92,7 @@ const ReviewContent = () => {
       setHasFetched(true);
       fetchGeneratedContent();
     }
-  }, [hasFetched]);
+  }, []); // Remove hasFetched dependency to prevent double calls
 
   const generateAnalyticsFromContent = (contentData: ContentReview[]) => {
     if (contentData.length === 0) return;
@@ -326,7 +326,14 @@ const ReviewContent = () => {
 
       // Get workflow_id from navigation state or URL params
       const currentWorkflowId = location.state?.workflowId || new URLSearchParams(location.search).get('workflow_id');
+      
+      // Debug logging
+      console.log('ReviewContent: Location state:', location.state);
+      console.log('ReviewContent: URL search params:', location.search);
+      console.log('ReviewContent: Current workflow ID:', currentWorkflowId);
+      
       if (!currentWorkflowId) {
+        console.error('ReviewContent: No workflow ID found!');
         showNotification('error', 'No Workflow', 'No workflow ID found. Please create content first.');
         setLoading(false);
         // Navigate back to home after 3 seconds
@@ -340,20 +347,25 @@ const ReviewContent = () => {
       setWorkflowId(currentWorkflowId);
 
       // Fetch real data from backend
+      console.log('ReviewContent: Fetching workflow with ID:', currentWorkflowId);
       const response = await apiService.getWorkflow(currentWorkflowId);
+      console.log('ReviewContent: Workflow API response:', response);
+      
       if (response.success) {
         // The response structure wraps data in a 'workflow' property
         const workflowResponseData = (response as any).workflow || {};
         
         // Debug: Log the actual data structure
         console.log('Workflow response data:', workflowResponseData);
-        console.log('Platform content:', workflowResponseData.content);
-        console.log('Generated images:', workflowResponseData.generated_images);
+        console.log('Platform content:', workflowResponseData.data?.content || workflowResponseData.content);
+        console.log('Generated images:', workflowResponseData.data?.generated_images || workflowResponseData.generated_images);
         
         // Store the original workflow data for the Enhanced Prompt section
         setWorkflowData(workflowResponseData);
-        const platformContent = workflowResponseData.content || {};
-        const workflowGeneratedImages = workflowResponseData.generated_images || workflowResponseData.images || [];
+        
+        // Handle both data structures - check if data is wrapped in 'data' property
+        const platformContent = workflowResponseData.data?.content || workflowResponseData.content || {};
+        const workflowGeneratedImages = workflowResponseData.data?.generated_images || workflowResponseData.generated_images || workflowResponseData.images || [];
         setGeneratedImages(workflowGeneratedImages);
 
         // Transform platform content to ContentReview format
@@ -386,10 +398,11 @@ const ReviewContent = () => {
         }), {}));
 
         // Update analytics if available (handle platform-specific analytics)
-        if (workflowResponseData.analytics && Object.keys(workflowResponseData.analytics).length > 0) {
+        const analyticsData = workflowResponseData.data?.analytics || workflowResponseData.analytics;
+        if (analyticsData && Object.keys(analyticsData).length > 0) {
           // Get analytics for the first platform as overall analytics, or use platform-specific
-          const firstPlatform = Object.keys(workflowResponseData.analytics)[0];
-          const platformAnalytics = firstPlatform ? workflowResponseData.analytics[firstPlatform] : null;
+          const firstPlatform = Object.keys(analyticsData)[0];
+          const platformAnalytics = firstPlatform ? analyticsData[firstPlatform] : null;
           if (platformAnalytics) {
             setAnalytics({
               engagement_score: platformAnalytics.engagement_score || 'High (85%)',
@@ -517,7 +530,7 @@ const ReviewContent = () => {
         showNotification('info', 'Regenerating Image', 'Creating new image with your prompt...');
         
         // Get the original prompt from workflow data for better context
-        const originalPrompt = workflowData?.enhanced_prompt || workflowData?.topic || 'social media content';
+        const originalPrompt = workflowData?.data?.enhanced_prompt || workflowData?.enhanced_prompt || workflowData?.data?.topic || workflowData?.topic || 'social media content';
         
         const response = await apiService.regenerateImage({
           workflow_id: workflowId,
@@ -564,7 +577,7 @@ const handlePostAll = async () => {
   }
 
   // Get the original platforms from workflow data to ensure we only post to selected platforms
-  const originalPlatforms = workflowData?.platforms || [];
+  const originalPlatforms = workflowData?.data?.platforms || workflowData?.platforms || [];
   if (originalPlatforms.length === 0) {
     showNotification('error', 'No Platforms', 'No platforms selected for this content');
     setIsPosting(false);
@@ -904,7 +917,7 @@ const handlePostAll = async () => {
                 {generatedImages.length > 0 ? generatedImages.map((imageUrl, index) => <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
                     <div className="aspect-video bg-gray-200 flex items-center justify-center relative overflow-hidden">
                       {imageUrl ? <img 
-                        src={apiService.getImageUrl(imageUrl)}
+                        src={imageUrl.startsWith('http') ? imageUrl : `http://148.113.16.40:8023${imageUrl}`}
                         alt={`Generated image ${index + 1}`} className="w-full h-full object-contain" onError={e => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = 'none';
@@ -1064,14 +1077,14 @@ const handlePostAll = async () => {
             <div>
               <strong className="text-black bg-inherit">Original Prompt:</strong>
               <div className="p-3 rounded-lg mt-2 text-sm text-black italic border border-gray-700 bg-slate-50">
-                {workflowData?.topic || 'Social media content'}
+                {workflowData?.data?.topic || workflowData?.topic || 'Social media content'}
               </div>
             </div>
             <div>
               <strong className="text-black">Enhanced Prompt:</strong>
               <div className="p-3 rounded-lg mt-2 text-black border border-gray-700 bg-slate-50">
-                {workflowData?.enhanced_prompt || workflowData?.prompt || `Create engaging social media content about ${workflowData?.topic || 'the topic'} that highlights key benefits, 
-                maintains ${workflowData?.tone || 'professional'} tone, includes relevant hashtags, and encourages user engagement through 
+                {workflowData?.data?.enhanced_prompt || workflowData?.enhanced_prompt || workflowData?.prompt || `Create engaging social media content about ${workflowData?.data?.topic || workflowData?.topic || 'the topic'} that highlights key benefits, 
+                maintains ${workflowData?.data?.tone || workflowData?.tone || 'professional'} tone, includes relevant hashtags, and encourages user engagement through 
                 clear calls-to-action while adapting to each platform's specific format and audience expectations.`}
               </div>
             </div>

@@ -199,6 +199,11 @@ export const ContentCreationForm = () => {
       
       const response = await apiService.createContent(requestData);
 
+      // Debug logging
+      console.log('Content creation response:', response);
+      console.log('Response success:', response.success);
+      console.log('Workflow ID:', response.workflow_id);
+
       if (response.success) {
         // Clear intervals and update activity on success
         clearInterval(messageInterval);
@@ -213,6 +218,9 @@ export const ContentCreationForm = () => {
         
         setIsLoading(false);
         showNotification('success', 'Content Generated!', 'Your social media content has been created successfully.');
+        
+        // Debug navigation
+        console.log('Navigating to review-content with workflowId:', response.workflow_id);
         
         // Navigate immediately to prevent repeated calls
         navigate('/review-content', { state: { workflowId: response.workflow_id } });
