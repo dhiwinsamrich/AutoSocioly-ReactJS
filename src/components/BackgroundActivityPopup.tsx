@@ -188,7 +188,7 @@ export const BackgroundActivityPopup = ({
   if (allActivities.length === 0 && !isVisible) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50 sm:bottom-4 sm:right-4">
       {/* Circular Popup */}
       <div className={cn(
         "relative transition-all duration-500 ease-in-out",
@@ -197,7 +197,7 @@ export const BackgroundActivityPopup = ({
         {/* Main Circular Container */}
         <div key={`popup-${currentActivity?.id}-${currentActivity?.status}`} className={cn(
           "relative bg-neutral-900 backdrop-blur-xl border border-white shadow-2xl transition-all duration-500 ease-in-out rounded-full",
-          isExpanded ? "w-40 h-40" : "w-16 h-16"
+          isExpanded ? "w-36 h-36 sm:w-40 sm:h-40" : "w-16 h-16 sm:w-18 sm:h-18"
         )}>
           {/* Collapsed State - Circular */}
           {!isExpanded && (
@@ -206,13 +206,13 @@ export const BackgroundActivityPopup = ({
                 {/* Activity Icon */}
                 <div className="flex items-center justify-center">
                   {currentActivity ? getActivityIcon(currentActivity.type, currentActivity.status) : (
-                    <Activity className="w-6 h-6 text-white" />
+                    <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   )}
                 </div>
                 
                   {/* Progress Ring */}
                   {currentActivity && currentActivity.progress !== undefined && currentActivity.status === 'in_progress' && (
-                    <svg className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 -rotate-90" viewBox="0 0 40 40">
+                    <svg className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 -rotate-90" viewBox="0 0 40 40">
                       <circle
                         cx="20"
                         cy="20"
@@ -253,14 +253,14 @@ export const BackgroundActivityPopup = ({
                   {/* Activity Icon */}
                   <div className="flex justify-center mb-2">
                     {currentActivity.status === 'in_progress' ? (
-                      <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                      <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-spin" />
                     ) : (
                       getActivityIcon(currentActivity.type, currentActivity.status)
                     )}
                   </div>
                   
                   {/* Status */}
-                  <div className={cn("text-sm font-bold", getStatusColor(currentActivity.status))}>
+                  <div className={cn("text-xs sm:text-sm font-bold", getStatusColor(currentActivity.status))}>
                     {currentActivity.status === 'in_progress' ? ' ' : 
                      currentActivity.status === 'completed' ? 'DONE' : 
                      currentActivity.status === 'failed' ? 'ERROR' : 'PENDING'}
@@ -323,8 +323,8 @@ export const BackgroundActivityPopup = ({
                   "text-center transition-all duration-300 ease-in-out",
                   showNoActivityText ? "opacity-100 scale-100" : "opacity-0 scale-95"
                 )}>
-                  <Activity className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                  <div className="text-gray-500 text-sm">No activities</div>
+                  <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500 mx-auto mb-2" />
+                  <div className="text-gray-500 text-xs sm:text-sm">No activities</div>
                 </div>
               )}
             </div>
@@ -334,7 +334,7 @@ export const BackgroundActivityPopup = ({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className={cn(
-              "absolute -right-1 -top-1 w-6 h-6 bg-gray-800 border border-gray-600 rounded-full flex items-center justify-center text-white hover:bg-gray-700 transition-all duration-200 text-sm font-bold",
+              "absolute -right-2.5 -top-2.5 w-4 h-4 sm:w-5 sm:h-5 bg-gray-800 border border-gray-600 rounded-full flex items-center justify-center text-white hover:bg-gray-700 active:bg-gray-600 transition-all duration-200 text-lg font-bold touch-manipulation shadow-md hover:shadow-lg transform scale-50 sm:scale-100",
               isExpanded ? "bg-blue-600" : ""
             )}
           >
@@ -343,14 +343,14 @@ export const BackgroundActivityPopup = ({
           
           {/* Activity Count Badge - Only show if multiple activities */}
           {allActivities.length > 1 && (
-            <div className="absolute -top-1 -left-1 w-5 h-5 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+            <div className="absolute -top-0.5 -left-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
               {allActivities.length}
             </div>
           )}
           
           {/* Current Message Indicator */}
           {currentActivity && currentActivity.currentMessage && (
-            <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+            <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-yellow-500 rounded-full animate-pulse" />
           )}
         </div>
       </div>

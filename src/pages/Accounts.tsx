@@ -164,7 +164,8 @@ export default function Accounts() {
   const fetchCurrentApiKey = async () => {
     try {
       const response = await apiService.request('/api/account/api-key');
-      setCurrentApiKey(response.api_key || '');
+      // The backend response may not be typed, so use type assertion or optional chaining
+      setCurrentApiKey((response as any)?.api_key || '');
     } catch (error) {
       console.error('Failed to fetch current API key:', error);
     }
@@ -256,7 +257,7 @@ export default function Accounts() {
     return (
       <div className="min-h-screen bg-neutral-950">
         <Navigation />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
             <p className="text-white/80">Loading account details...</p>
@@ -270,7 +271,7 @@ export default function Accounts() {
     return (
       <div className="min-h-screen bg-neutral-950">
         <Navigation />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="text-center py-12">
             <p className="text-white/80">Failed to load account details</p>
             <Button onClick={fetchAccountDetails} className="mt-4">
@@ -288,7 +289,7 @@ export default function Accounts() {
     <div className="min-h-screen bg-neutral-950">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

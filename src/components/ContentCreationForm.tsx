@@ -269,7 +269,7 @@ export const ContentCreationForm = () => {
         />
       ))}
 
-      <GlassCard className="p-8 max-w-4xl mx-auto">
+      <GlassCard className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="bg-gradient-to-br from-black to-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <Wand2 className="h-8 w-8 text-white" />
@@ -371,7 +371,7 @@ export const ContentCreationForm = () => {
           {/* Platform Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-gray-700">Select Platforms</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4">
               {platforms.map((platform) => {
                 const isSelected = selectedPlatforms.includes(platform.id);
                 

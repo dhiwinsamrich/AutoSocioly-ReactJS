@@ -5,6 +5,7 @@ import { Home, LayoutDashboard, Users, Rocket, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 export const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isTouched, setIsTouched] = useState(false);
   const navItems = [{
     path: '/',
     icon: Home,
@@ -18,8 +19,8 @@ export const Navigation = () => {
     icon: Users,
     label: 'Accounts'
   }];
-  return <nav className="bg-black border-b border-gray-800 z-50">
-      <div className="container mx-auto px-4 bg-neutral-950">
+  return <nav className="bg-neutral-950 border-b border-gray-800 z-50">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 bg-neutral-950">
         <div className="flex items-center justify-between h-16 bg-neutral-950">
           {/* Brand */}
           <NavLink to="/" className="flex items-center space-x-2 font-bold text-xl text-white hover:text-gray-300 transition-colors">
@@ -45,8 +46,22 @@ export const Navigation = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            className="md:hidden text-white hover:bg-white/10 transition-all duration-300" 
-            onClick={() => setIsOpen(!isOpen)}
+            className={cn(
+              "md:hidden text-white transition-all duration-300 touch-manipulation",
+              isTouched ? "bg-white/20" : "hover:bg-white/10 active:bg-white/20 focus:bg-white/10"
+            )}
+            onClick={() => {
+              setIsOpen(!isOpen);
+              setIsTouched(true);
+              // Reset touch state after a short delay
+              setTimeout(() => setIsTouched(false), 200);
+            }}
+            onTouchStart={() => setIsTouched(true)}
+            onTouchEnd={(e) => {
+              // Prevent hover state from persisting on mobile
+              e.currentTarget.blur();
+              setTimeout(() => setIsTouched(false), 200);
+            }}
           >
             <div className="relative w-5 h-5">
               <Menu className={cn(
@@ -77,14 +92,18 @@ export const Navigation = () => {
                   key={path} 
                   to={path} 
                   className={({ isActive }) => cn(
-                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 transform",
-                    isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10',
+                    "flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 transform touch-manipulation",
+                    isActive ? 'bg-white/20 text-white font-medium' : 'text-white/80 hover:text-white hover:bg-white/10 active:bg-white/20 focus:bg-white/10',
                     isOpen ? "translate-x-0 opacity-100" : "translate-x-4 opacity-0"
                   )}
                   style={{
                     transitionDelay: isOpen ? `${index * 100}ms` : '0ms'
                   }}
                   onClick={() => setIsOpen(false)}
+                  onTouchEnd={(e) => {
+                    // Prevent hover state from persisting on mobile
+                    e.currentTarget.blur();
+                  }}
                 >
                   <Icon className="h-5 w-5" />
                   <span>{label}</span>
