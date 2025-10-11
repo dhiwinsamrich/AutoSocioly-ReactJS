@@ -64,6 +64,7 @@ const ReviewContent = () => {
   const [isPosting, setIsPosting] = useState(false);
   const [showPostAnimation, setShowPostAnimation] = useState(false);
   const [regeneratingImages, setRegeneratingImages] = useState<Set<string>>(new Set());
+  const [downloadingImages, setDownloadingImages] = useState<Set<number>>(new Set());
   const [analytics, setAnalytics] = useState<Analytics>({
     engagement_score: 'High (85%)',
     viral_potential: 'Medium',
@@ -503,25 +504,59 @@ const ReviewContent = () => {
 
   const handleDownloadImage = async (imageUrl: string, index: number) => {
     try {
+      // Add to downloading set
+      setDownloadingImages(prev => new Set(prev).add(index));
+      
       showNotification('info', 'Downloading Image', 'Preparing image for download...');
       
-      // Convert relative URL to absolute URL if needed
-      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `http://148.113.16.40:8023${imageUrl}`;
+      // Validate image URL
+      if (!imageUrl || imageUrl.trim() === '') {
+        throw new Error('No image URL provided');
+      }
       
-      // Fetch the image
-      const response = await fetch(fullImageUrl);
+      // Convert relative URL to absolute URL using the API service method
+      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : apiService.getImageUrl(imageUrl);
+      
+      console.log('Downloading image:', { originalUrl: imageUrl, fullUrl: fullImageUrl });
+      
+      // Fetch the image with proper headers
+      const response = await fetch(fullImageUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/*',
+        },
+        credentials: 'include', // Include cookies for authentication if needed
+      });
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch image');
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      
+      // Check if response is actually an image
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.startsWith('image/')) {
+        throw new Error('Response is not an image');
       }
       
       // Convert to blob
       const blob = await response.blob();
       
+      // Validate blob size
+      if (blob.size === 0) {
+        throw new Error('Downloaded image is empty');
+      }
+      
+      // Determine file extension from content type or default to png
+      const extension = contentType.includes('jpeg') || contentType.includes('jpg') ? 'jpg' : 
+                       contentType.includes('gif') ? 'gif' : 
+                       contentType.includes('webp') ? 'webp' : 'png';
+      
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `generated-image-${index + 1}.png`;
+      link.download = `generated-image-${index + 1}.${extension}`;
+      link.style.display = 'none'; // Hide the link element
       
       // Trigger download
       document.body.appendChild(link);
@@ -531,10 +566,18 @@ const ReviewContent = () => {
       // Clean up
       window.URL.revokeObjectURL(url);
       
-      showNotification('success', 'Download Started', 'Image download has started successfully!');
+      showNotification('success', 'Download Started', `Image ${index + 1} download has started successfully!`);
     } catch (error) {
       console.error('Download error:', error);
-      showNotification('error', 'Download Failed', 'Failed to download image. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      showNotification('error', 'Download Failed', `Failed to download image: ${errorMessage}`);
+    } finally {
+      // Remove from downloading set
+      setDownloadingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
     }
   };
 
@@ -994,10 +1037,22 @@ const handlePostAll = async () => {
                         </button>
                         <button 
                           onClick={() => handleDownloadImage(imageUrl, index)} 
-                          className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm flex items-center justify-center"
-                          title="Download Image"
+                          disabled={downloadingImages.has(index)}
+                          className={`px-3 py-2 rounded-md transition-colors text-sm flex items-center justify-center ${
+                            downloadingImages.has(index)
+                              ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                          title={downloadingImages.has(index) ? 'Downloading...' : 'Download Image'}
                         >
-                          <Download className="w-4 h-4" />
+                          {downloadingImages.has(index) ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                              Downloading...
+                            </>
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </div>
