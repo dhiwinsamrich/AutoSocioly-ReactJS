@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiService } from '@/services/api';
 import { GlassCard } from '@/components/GlassCard';
 import { Navigation } from '@/components/Navigation';
-import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, Redo, Info, Hash, MessageSquare, TrendingUp, RefreshCw } from 'lucide-react';
+import { Check, Edit3, X, Send, Clock, Calendar, Image, FileText, Lightbulb, BarChart3, Users, CheckCircle, ArrowUp, Redo, Info, Hash, MessageSquare, TrendingUp, RefreshCw, Download } from 'lucide-react';
 import { useNotification } from '@/hooks/useNotification';
 import { useActivity } from '@/contexts/ActivityContext';
 import { EditModal } from '@/components/EditModal';
@@ -501,6 +501,43 @@ const ReviewContent = () => {
     }
   };
 
+  const handleDownloadImage = async (imageUrl: string, index: number) => {
+    try {
+      showNotification('info', 'Downloading Image', 'Preparing image for download...');
+      
+      // Convert relative URL to absolute URL if needed
+      const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `http://148.113.16.40:8023${imageUrl}`;
+      
+      // Fetch the image
+      const response = await fetch(fullImageUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      
+      // Convert to blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `generated-image-${index + 1}.png`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      
+      showNotification('success', 'Download Started', 'Image download has started successfully!');
+    } catch (error) {
+      console.error('Download error:', error);
+      showNotification('error', 'Download Failed', 'Failed to download image. Please try again.');
+    }
+  };
+
   const handleEditHashtags = (id: string) => {
     setEditModal({
       isOpen: true,
@@ -954,6 +991,13 @@ const handlePostAll = async () => {
                           ) : (
                             'Regenerate'
                           )}
+                        </button>
+                        <button 
+                          onClick={() => handleDownloadImage(imageUrl, index)} 
+                          className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm flex items-center justify-center"
+                          title="Download Image"
+                        >
+                          <Download className="w-4 h-4" />
                         </button>
                       </div>
                     </div>

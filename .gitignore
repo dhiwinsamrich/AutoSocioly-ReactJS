@@ -12,7 +12,6 @@ lerna-debug.log*
 bun-debug.log*
 
 # Package manager lock files (keep one, ignore others)
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 bun.lockb
