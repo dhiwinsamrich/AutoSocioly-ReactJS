@@ -792,11 +792,44 @@ const handlePostAll = async () => {
       };
     });
 
-    // Combine all content into one string - use filtered content
-    const firstApprovedContent = filteredApprovedContent[0];
-    const contentText = firstApprovedContent.content;
-    const hashtagsText = firstApprovedContent.hashtags.map(tag => `#${tag}`).join(' ');
+    // Combine all content into one string - use the most comprehensive content
+    // If there are multiple approved content items, we'll use the one with the most hashtags
+    // or the most recently edited one (this could be improved with a UI selection)
+    let selectedContent = filteredApprovedContent[0];
+    
+    // Find the content with the most hashtags (likely the most edited)
+    if (filteredApprovedContent.length > 1) {
+      selectedContent = filteredApprovedContent.reduce((best, current) => {
+        const bestHashtagCount = best.hashtags.length;
+        const currentHashtagCount = current.hashtags.length;
+        
+        // Prefer content with more hashtags, or if equal, prefer longer content
+        if (currentHashtagCount > bestHashtagCount) {
+          return current;
+        } else if (currentHashtagCount === bestHashtagCount && current.content.length > best.content.length) {
+          return current;
+        }
+        return best;
+      });
+    }
+    
+    const contentText = selectedContent.content;
+    const hashtagsText = selectedContent.hashtags.map(tag => `#${tag}`).join(' ');
     const fullContent = contentText + (hashtagsText ? `\n\n${hashtagsText}` : '');
+    
+    console.log('Posting content details:', {
+      selectedPlatform: selectedContent.platform,
+      contentText,
+      hashtags: selectedContent.hashtags,
+      hashtagsText,
+      fullContent,
+      allApprovedContent: filteredApprovedContent.map(item => ({
+        platform: item.platform,
+        content: item.content,
+        hashtags: item.hashtags,
+        characterCount: item.character_count
+      }))
+    });
 
     // Prepare the payload with media items
     const payload = {
@@ -1284,6 +1317,11 @@ const handlePostAll = async () => {
                 <p className="text-neutral-900">
                   {content.filter(item => item.status === 'approved').length} of {content.length} pieces approved
                 </p>
+                {content.filter(item => item.status === 'approved').length > 1 && (
+                  <p className="text-sm text-blue-600 mt-1">
+                    💡 Content with the most hashtags will be used for posting
+                  </p>
+                )}
               </div>
               
               <div className="flex items-center gap-3">

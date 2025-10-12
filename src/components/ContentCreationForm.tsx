@@ -315,9 +315,12 @@ export const ContentCreationForm = () => {
               <SelectContent>
                 <SelectItem value="professional">Professional</SelectItem>
                 <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="humorous">Humorous</SelectItem>
-                <SelectItem value="inspirational">Inspirational</SelectItem>
-                <SelectItem value="educational">Educational</SelectItem>
+                <SelectItem value="funny">Funny</SelectItem>
+                <SelectItem value="inspiring">Inspiring</SelectItem>
+                <SelectItem value="informative">Informative</SelectItem>
+                <SelectItem value="engaging">Engaging</SelectItem>
+                <SelectItem value="friendly">Friendly</SelectItem>
+                <SelectItem value="formal">Formal</SelectItem>
               </SelectContent>
             </Select>
           </div>
