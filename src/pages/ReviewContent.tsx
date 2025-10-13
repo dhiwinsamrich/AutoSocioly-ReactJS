@@ -87,6 +87,11 @@ const ReviewContent = () => {
     type: 'caption',
     itemId: ''
   });
+  const [subreddit, setSubreddit] = useState<string>('');
+  const [subredditError, setSubredditError] = useState<string>('');
+  const [isVerifyingSubreddit, setIsVerifyingSubreddit] = useState<boolean>(false);
+  const [subredditVerified, setSubredditVerified] = useState<boolean>(false);
+  const [subredditVerificationError, setSubredditVerificationError] = useState<string>('');
 
   useEffect(() => {
     if (!hasFetched) {
@@ -398,6 +403,12 @@ const ReviewContent = () => {
           [item.id]: item.content
         }), {}));
 
+        // Initialize subreddit with default value if Reddit content exists
+        const hasRedditContent = transformedContent.some(item => item.platform.toLowerCase() === 'reddit');
+        if (hasRedditContent && !subreddit) {
+          setSubreddit('technology'); // Default subreddit
+        }
+
         // Update analytics if available (handle platform-specific analytics)
         const analyticsData = workflowResponseData.data?.analytics || workflowResponseData.analytics;
         if (analyticsData && Object.keys(analyticsData).length > 0) {
@@ -656,6 +667,25 @@ const handlePostAll = async () => {
     return;
   }
 
+  // Check if Reddit is selected and validate subreddit
+  const hasReddit = approvedContent.some(item => item.platform.toLowerCase() === 'reddit');
+  if (hasReddit) {
+    if (!validateSubreddit(subreddit)) {
+      showNotification('error', 'Invalid Subreddit', subredditError || 'Please enter a valid subreddit for Reddit posts');
+      setIsPosting(false);
+      setShowPostAnimation(false);
+      return;
+    }
+    
+    // Require verification for Reddit posts
+    if (!subredditVerified) {
+      showNotification('error', 'Subreddit Not Verified', 'Please verify the subreddit exists before posting to Reddit');
+      setIsPosting(false);
+      setShowPostAnimation(false);
+      return;
+    }
+  }
+
   // Get the original platforms from workflow data to ensure we only post to selected platforms
   const originalPlatforms = workflowData?.data?.platforms || workflowData?.platforms || [];
   if (originalPlatforms.length === 0) {
@@ -786,10 +816,19 @@ const handlePostAll = async () => {
         throw new Error(`No account ID found for platform: ${platformName} (mapped to: ${mappedPlatform})`);
       }
       
-      return {
+      const platformEntry: any = {
         platform: mappedPlatform, // Use mapped platform name for backend
         accountId: accountId
       };
+
+      // Add platform-specific data for Reddit
+      if (mappedPlatform === 'reddit' && subreddit.trim()) {
+        platformEntry.platformSpecificData = {
+          subreddit: subreddit.trim()
+        };
+      }
+      
+      return platformEntry;
     });
 
     // Combine all content into one string - use the most comprehensive content
@@ -968,9 +1007,101 @@ const handlePostAll = async () => {
       twitter: 'X (Twitter)', // Support both for backward compatibility
       instagram: 'Instagram',
       linkedin: 'LinkedIn',
+      reddit: 'Reddit',
+      pinterest: 'Pinterest',
       tiktok: 'TikTok'
     };
     return platformNames[platform] || platform;
+  };
+
+  const validateSubreddit = (subreddit: string): boolean => {
+    if (!subreddit || !subreddit.trim()) {
+      setSubredditError('Subreddit is required for Reddit posts');
+      return false;
+    }
+    
+    const cleanSubreddit = subreddit.trim();
+    
+    // Should not start with r/ prefix
+    if (cleanSubreddit.startsWith('r/')) {
+      setSubredditError('Subreddit should not include "r/" prefix');
+      return false;
+    }
+    
+    // Should only contain alphanumeric characters and underscores
+    if (!cleanSubreddit.replace('_', '').match(/^[a-zA-Z0-9_]+$/)) {
+      setSubredditError('Subreddit can only contain letters, numbers, and underscores');
+      return false;
+    }
+    
+    // Should not be empty after cleaning
+    if (cleanSubreddit.length === 0) {
+      setSubredditError('Subreddit cannot be empty');
+      return false;
+    }
+    
+    setSubredditError('');
+    return true;
+  };
+
+  const handleSubredditChange = (value: string) => {
+    setSubreddit(value);
+    // Clear errors when user starts typing
+    if (subredditError) {
+      setSubredditError('');
+    }
+    if (subredditVerificationError) {
+      setSubredditVerificationError('');
+    }
+    // Reset verification status when subreddit changes
+    setSubredditVerified(false);
+  };
+
+  const verifySubreddit = async () => {
+    if (!subreddit.trim()) {
+      setSubredditVerificationError('Please enter a subreddit name first');
+      return;
+    }
+
+    // Validate format first
+    if (!validateSubreddit(subreddit)) {
+      setSubredditVerificationError('Please fix the subreddit format before verifying');
+      return;
+    }
+
+    setIsVerifyingSubreddit(true);
+    setSubredditVerificationError('');
+    setSubredditVerified(false);
+
+    try {
+      // Use our backend API to verify subreddit
+      const subredditName = subreddit.trim();
+      const response = await apiService.verifySubreddit(subredditName);
+
+      if (response.success && response.exists) {
+        // Subreddit exists and is accessible
+        setSubredditVerified(true);
+        setSubredditVerificationError('');
+        
+        if (response.is_nsfw) {
+          showNotification('info', 'NSFW Subreddit', `r/${subredditName} is marked as NSFW. Please review before posting.`);
+        } else {
+          showNotification('success', 'Subreddit Verified', `r/${subredditName} exists and is available for posting`);
+        }
+      } else {
+        // Subreddit doesn't exist or is not accessible
+        setSubredditVerified(false);
+        setSubredditVerificationError(response.message || `r/${subredditName} is not accessible`);
+        showNotification('error', 'Subreddit Not Found', response.message || `r/${subredditName} is not accessible`);
+      }
+    } catch (error) {
+      console.error('Error verifying subreddit:', error);
+      setSubredditVerified(false);
+      setSubredditVerificationError('Network error. Please check your connection and try again.');
+      showNotification('error', 'Network Error', 'Failed to verify subreddit. Please check your connection and try again.');
+    } finally {
+      setIsVerifyingSubreddit(false);
+    }
   };
 
   // Map platform names to backend format
@@ -1177,6 +1308,7 @@ const handlePostAll = async () => {
                         </Badge>)}
                     </div>
                   </div>
+
                   
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-700">
                     <div className="text-center">
@@ -1196,6 +1328,74 @@ const handlePostAll = async () => {
               </div>)}
           </div>
         </GlassCard>
+
+        {/* Global Reddit Subreddit Input - Show if any Reddit content exists */}
+        {content.some(item => item.platform.toLowerCase() === 'reddit') && (
+          <GlassCard className="p-6 mb-8">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-950">
+              <MessageSquare className="h-5 w-5" />
+              Reddit Subreddit Configuration
+            </h3>
+            <p className="mb-4 text-neutral-800">Configure the subreddit for your Reddit posts</p>
+            
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={subreddit}
+                  onChange={(e) => handleSubredditChange(e.target.value)}
+                  placeholder="Enter subreddit name (e.g., technology, programming)"
+                  className={`flex-1 px-3 py-2 border rounded-md text-neutral-950 bg-white ${
+                    subredditError ? 'border-red-500' : 
+                    subredditVerified ? 'border-green-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  disabled={isVerifyingSubreddit}
+                />
+                <Button
+                  type="button"
+                  onClick={verifySubreddit}
+                  disabled={isVerifyingSubreddit || !subreddit.trim() || !!subredditError}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isVerifyingSubreddit ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Verify
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {/* Error Messages */}
+              {subredditError && (
+                <p className="text-red-500 text-sm">{subredditError}</p>
+              )}
+              
+              {/* Verification Status */}
+              {subredditVerificationError && (
+                <p className="text-red-500 text-sm">{subredditVerificationError}</p>
+              )}
+              
+              {/* Success Status */}
+              {subreddit && !subredditError && subredditVerified && !subredditVerificationError && (
+                <p className="text-green-600 text-sm flex items-center gap-1">
+                  <Check className="h-4 w-4" />
+                  ✓ Subreddit verified: r/{subreddit.trim()}
+                </p>
+              )}
+              
+              {/* Basic validation success (without verification) */}
+              {subreddit && !subredditError && !subredditVerified && !subredditVerificationError && (
+                <p className="text-blue-600 text-sm">Subreddit format valid: r/{subreddit.trim()}</p>
+              )}
+            </div>
+          </GlassCard>
+        )}
 
         {/* Enhanced Prompt Section */}
         <GlassCard className="p-6 mb-8">
@@ -1322,6 +1522,11 @@ const handlePostAll = async () => {
                     💡 Content with the most hashtags will be used for posting
                   </p>
                 )}
+                {content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (
+                  <p className="text-sm text-orange-600 mt-1">
+                    🔴 Reddit selected: Subreddit required and must be verified for posting
+                  </p>
+                )}
               </div>
               
               <div className="flex items-center gap-3">
@@ -1330,14 +1535,14 @@ const handlePostAll = async () => {
                   <input type="datetime-local" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="border border-gray-600 bg-gray-800 text-white rounded-md px-3 py-2 text-sm" min={new Date().toISOString().slice(0, 16)} />
                 </div>
                 
-                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate} className="flex items-center gap-2 text-neutral-950">
+                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified))} className="flex items-center gap-2 text-neutral-950">
                   <Clock className="h-4 w-4" />
                   Schedule
                 </Button>
                 
                 <Button 
                   onClick={handlePostAll} 
-                  disabled={isPosting}
+                  disabled={isPosting || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified))}
                   className="text-black flex items-center gap-2 bg-blue-500 hover:bg-blue-400 disabled:opacity-100 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   {showPostAnimation ? (

@@ -23,6 +23,11 @@ interface APIResponse {
   accounts?: any;
   activities?: any[];
   publicUrl?: string;
+  exists?: boolean;
+  is_nsfw?: boolean;
+  subreddit?: string;
+  subscribers?: number;
+  description?: string;
 }
 
 interface PostRequestData {
@@ -689,6 +694,14 @@ class APIService {
     }
     
     return await response.json();
+  }
+
+  // Verify subreddit
+  async verifySubreddit(subreddit: string): Promise<APIResponse> {
+    return this.request('/api/verify-subreddit', {
+      method: 'POST',
+      body: JSON.stringify({ subreddit }),
+    });
   }
 }
 
