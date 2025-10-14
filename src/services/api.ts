@@ -28,6 +28,9 @@ interface APIResponse {
   subreddit?: string;
   subscribers?: number;
   description?: string;
+  // Pinterest-specific properties
+  boards?: any[];
+  defaultBoardId?: string;
 }
 
 interface PostRequestData {

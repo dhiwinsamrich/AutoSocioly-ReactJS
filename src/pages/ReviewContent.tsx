@@ -104,7 +104,15 @@ const ReviewContent = () => {
       setHasFetched(true);
       fetchGeneratedContent();
     }
-  }, []); // Remove hasFetched dependency to prevent double calls
+  }, [hasFetched]); // Include hasFetched dependency for proper React behavior
+
+  // Auto-fetch Pinterest boards when Pinterest content is detected
+  useEffect(() => {
+    const hasPinterestContent = content.some(item => item.platform.toLowerCase() === 'pinterest');
+    if (hasPinterestContent && pinterestBoards.length === 0 && !isLoadingBoards) {
+      fetchPinterestBoards();
+    }
+  }, [content, pinterestBoards.length, isLoadingBoards]);
 
   const generateAnalyticsFromContent = (contentData: ContentReview[]) => {
     if (contentData.length === 0) return;
@@ -252,7 +260,7 @@ const ReviewContent = () => {
               };
             }
           } catch (error) {
-            console.error(`Failed to analyze content for ${item.platform}:`, error);
+            // Failed to analyze content for this platform
           }
           return null;
         })
@@ -339,13 +347,7 @@ const ReviewContent = () => {
       // Get workflow_id from navigation state or URL params
       const currentWorkflowId = location.state?.workflowId || new URLSearchParams(location.search).get('workflow_id');
       
-      // Debug logging
-      console.log('ReviewContent: Location state:', location.state);
-      console.log('ReviewContent: URL search params:', location.search);
-      console.log('ReviewContent: Current workflow ID:', currentWorkflowId);
-      
       if (!currentWorkflowId) {
-        console.error('ReviewContent: No workflow ID found!');
         showNotification('error', 'No Workflow', 'No workflow ID found. Please create content first.');
         setLoading(false);
         // Navigate back to home after 3 seconds
@@ -359,18 +361,13 @@ const ReviewContent = () => {
       setWorkflowId(currentWorkflowId);
 
       // Fetch real data from backend
-      console.log('ReviewContent: Fetching workflow with ID:', currentWorkflowId);
       const response = await apiService.getWorkflow(currentWorkflowId);
-      console.log('ReviewContent: Workflow API response:', response);
       
       if (response.success) {
         // The response structure wraps data in a 'workflow' property
         const workflowResponseData = (response as any).workflow || {};
         
-        // Debug: Log the actual data structure
-        console.log('Workflow response data:', workflowResponseData);
-        console.log('Platform content:', workflowResponseData.data?.content || workflowResponseData.content);
-        console.log('Generated images:', workflowResponseData.data?.generated_images || workflowResponseData.generated_images);
+        // Process workflow response data
         
         // Store the original workflow data for the Enhanced Prompt section
         setWorkflowData(workflowResponseData);
@@ -808,7 +805,6 @@ const handlePostAll = async () => {
     let mediaItems: Array<{ type: string; url: string }> = [];
     
     // Convert generated images to media items
-    console.log('Generated images for posting:', generatedImages);
     if (generatedImages.length > 0) {
       for (const imagePath of generatedImages) {
         if (imagePath && typeof imagePath === 'string') {
@@ -819,14 +815,12 @@ const handlePostAll = async () => {
               type: 'image',
               url: publicUrl
             });
-            console.log(`Added media item: ${publicUrl}`);
           } catch (error) {
             console.error(`Failed to convert image path ${imagePath}:`, error);
           }
         }
       }
     }
-    console.log('Final media items for posting:', mediaItems);
 
     // Prepare platforms array with account IDs - only for filtered approved content
     const platformsWithAccounts = filteredApprovedContent.map(item => {
@@ -856,6 +850,8 @@ const handlePostAll = async () => {
         platformEntry.platformSpecificData = {
           boardId: selectedBoardId
         };
+      } else if (mappedPlatform === 'pinterest' && !selectedBoardId) {
+        // Pinterest content found but no board selected
       }
       
       return platformEntry;
@@ -1145,7 +1141,8 @@ const handlePostAll = async () => {
         throw new Error('Failed to retrieve connected accounts');
       }
 
-      const connectedAccounts = accountsResponse.accounts || [];
+      // Handle nested accounts structure
+      const connectedAccounts = accountsResponse.accounts?.data?.accounts || accountsResponse.accounts?.accounts || accountsResponse.accounts || [];
       const pinterestAccount = connectedAccounts.find((account: any) => 
         account.platform && account.platform.toLowerCase() === 'pinterest'
       );
@@ -1156,17 +1153,22 @@ const handlePostAll = async () => {
 
       // Fetch Pinterest boards
       const boardsResponse = await apiService.getPinterestBoards(pinterestAccount.id);
-      if (boardsResponse.success && boardsResponse.boards) {
-        setPinterestBoards(boardsResponse.boards);
+      
+      // Handle both response formats (with and without success property)
+      const boards = boardsResponse.boards || (boardsResponse.success ? boardsResponse.data?.boards : null);
+      const defaultBoardId = boardsResponse.defaultBoardId || (boardsResponse.success ? boardsResponse.data?.defaultBoardId : null);
+      
+      if (boards && boards.length > 0) {
+        setPinterestBoards(boards);
         
         // Set default board if available
-        if (boardsResponse.defaultBoardId) {
-          setSelectedBoardId(boardsResponse.defaultBoardId);
-        } else if (boardsResponse.boards.length > 0) {
-          setSelectedBoardId(boardsResponse.boards[0].id);
+        if (defaultBoardId) {
+          setSelectedBoardId(defaultBoardId);
+        } else if (boards.length > 0) {
+          setSelectedBoardId(boards[0].id);
         }
         
-        showNotification('success', 'Pinterest Boards Loaded', `Found ${boardsResponse.boards.length} Pinterest boards`);
+        showNotification('success', 'Pinterest Boards Loaded', `Found ${boards.length} Pinterest boards`);
       } else {
         throw new Error(boardsResponse.message || 'Failed to load Pinterest boards');
       }
