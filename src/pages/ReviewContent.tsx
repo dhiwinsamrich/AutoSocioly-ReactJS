@@ -92,6 +92,12 @@ const ReviewContent = () => {
   const [isVerifyingSubreddit, setIsVerifyingSubreddit] = useState<boolean>(false);
   const [subredditVerified, setSubredditVerified] = useState<boolean>(false);
   const [subredditVerificationError, setSubredditVerificationError] = useState<string>('');
+  
+  // Pinterest board selection state
+  const [pinterestBoards, setPinterestBoards] = useState<Array<{id: string, name: string}>>([]);
+  const [selectedBoardId, setSelectedBoardId] = useState<string>('');
+  const [isLoadingBoards, setIsLoadingBoards] = useState<boolean>(false);
+  const [boardError, setBoardError] = useState<string>('');
 
   useEffect(() => {
     if (!hasFetched) {
@@ -409,6 +415,12 @@ const ReviewContent = () => {
           setSubreddit('technology'); // Default subreddit
         }
 
+        // Initialize Pinterest board selection if Pinterest content exists
+        const hasPinterestContent = transformedContent.some(item => item.platform.toLowerCase() === 'pinterest');
+        if (hasPinterestContent) {
+          fetchPinterestBoards();
+        }
+
         // Update analytics if available (handle platform-specific analytics)
         const analyticsData = workflowResponseData.data?.analytics || workflowResponseData.analytics;
         if (analyticsData && Object.keys(analyticsData).length > 0) {
@@ -686,6 +698,17 @@ const handlePostAll = async () => {
     }
   }
 
+  // Check if Pinterest is selected and validate board selection
+  const hasPinterest = approvedContent.some(item => item.platform.toLowerCase() === 'pinterest');
+  if (hasPinterest) {
+    if (!selectedBoardId) {
+      showNotification('error', 'Board Required', 'Please select a Pinterest board for your pins');
+      setIsPosting(false);
+      setShowPostAnimation(false);
+      return;
+    }
+  }
+
   // Get the original platforms from workflow data to ensure we only post to selected platforms
   const originalPlatforms = workflowData?.data?.platforms || workflowData?.platforms || [];
   if (originalPlatforms.length === 0) {
@@ -825,6 +848,13 @@ const handlePostAll = async () => {
       if (mappedPlatform === 'reddit' && subreddit.trim()) {
         platformEntry.platformSpecificData = {
           subreddit: subreddit.trim()
+        };
+      }
+      
+      // Add platform-specific data for Pinterest
+      if (mappedPlatform === 'pinterest' && selectedBoardId) {
+        platformEntry.platformSpecificData = {
+          boardId: selectedBoardId
         };
       }
       
@@ -1102,6 +1132,56 @@ const handlePostAll = async () => {
     } finally {
       setIsVerifyingSubreddit(false);
     }
+  };
+
+  const fetchPinterestBoards = async () => {
+    try {
+      setIsLoadingBoards(true);
+      setBoardError('');
+      
+      // Get connected accounts to find Pinterest account
+      const accountsResponse = await apiService.getAccounts();
+      if (!accountsResponse.success) {
+        throw new Error('Failed to retrieve connected accounts');
+      }
+
+      const connectedAccounts = accountsResponse.accounts || [];
+      const pinterestAccount = connectedAccounts.find((account: any) => 
+        account.platform && account.platform.toLowerCase() === 'pinterest'
+      );
+
+      if (!pinterestAccount) {
+        throw new Error('No Pinterest account connected');
+      }
+
+      // Fetch Pinterest boards
+      const boardsResponse = await apiService.getPinterestBoards(pinterestAccount.id);
+      if (boardsResponse.success && boardsResponse.boards) {
+        setPinterestBoards(boardsResponse.boards);
+        
+        // Set default board if available
+        if (boardsResponse.defaultBoardId) {
+          setSelectedBoardId(boardsResponse.defaultBoardId);
+        } else if (boardsResponse.boards.length > 0) {
+          setSelectedBoardId(boardsResponse.boards[0].id);
+        }
+        
+        showNotification('success', 'Pinterest Boards Loaded', `Found ${boardsResponse.boards.length} Pinterest boards`);
+      } else {
+        throw new Error(boardsResponse.message || 'Failed to load Pinterest boards');
+      }
+    } catch (error) {
+      console.error('Error fetching Pinterest boards:', error);
+      setBoardError(error instanceof Error ? error.message : 'Failed to load Pinterest boards');
+      showNotification('error', 'Board Loading Failed', error instanceof Error ? error.message : 'Failed to load Pinterest boards');
+    } finally {
+      setIsLoadingBoards(false);
+    }
+  };
+
+  const handleBoardChange = (boardId: string) => {
+    setSelectedBoardId(boardId);
+    setBoardError('');
   };
 
   // Map platform names to backend format
@@ -1397,6 +1477,77 @@ const handlePostAll = async () => {
           </GlassCard>
         )}
 
+        {/* Pinterest Board Selection - Show if any Pinterest content exists */}
+        {content.some(item => item.platform.toLowerCase() === 'pinterest') && (
+          <GlassCard className="p-6 mb-8">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-950">
+              <Image className="h-5 w-5" />
+              Pinterest Board Selection
+            </h3>
+            <p className="mb-4 text-neutral-800">Choose a board for your Pinterest pins</p>
+            
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <select
+                  value={selectedBoardId}
+                  onChange={(e) => handleBoardChange(e.target.value)}
+                  className={`flex-1 px-3 py-2 border rounded-md text-neutral-950 bg-white ${
+                    boardError ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  disabled={isLoadingBoards}
+                >
+                  <option value="">
+                    {isLoadingBoards ? 'Loading boards...' : 'Select a Pinterest board'}
+                  </option>
+                  {pinterestBoards.map((board) => (
+                    <option key={board.id} value={board.id}>
+                      {board.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  onClick={fetchPinterestBoards}
+                  disabled={isLoadingBoards}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoadingBoards ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4" />
+                      Refresh
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {/* Error Messages */}
+              {boardError && (
+                <p className="text-red-500 text-sm">{boardError}</p>
+              )}
+              
+              {/* Success Status */}
+              {selectedBoardId && !boardError && (
+                <p className="text-green-600 text-sm flex items-center gap-1">
+                  <Check className="h-4 w-4" />
+                  ✓ Board selected: {pinterestBoards.find(b => b.id === selectedBoardId)?.name || 'Unknown'}
+                </p>
+              )}
+              
+              {/* No boards available */}
+              {!isLoadingBoards && pinterestBoards.length === 0 && !boardError && (
+                <p className="text-orange-600 text-sm">
+                  ⚠️ No Pinterest boards available. Please connect your Pinterest account and create boards.
+                </p>
+              )}
+            </div>
+          </GlassCard>
+        )}
+
         {/* Enhanced Prompt Section */}
         <GlassCard className="p-6 mb-8">
           <h3 className="text-xl font-semibold mb-2 flex items-center gap-2 text-neutral-950">
@@ -1527,6 +1678,11 @@ const handlePostAll = async () => {
                     🔴 Reddit selected: Subreddit required and must be verified for posting
                   </p>
                 )}
+                {content.some(item => item.platform.toLowerCase() === 'pinterest' && item.status === 'approved') && (
+                  <p className="text-sm text-orange-600 mt-1">
+                    📌 Pinterest selected: Board selection required for posting
+                  </p>
+                )}
               </div>
               
               <div className="flex items-center gap-3">
@@ -1535,14 +1691,14 @@ const handlePostAll = async () => {
                   <input type="datetime-local" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} className="border border-gray-600 bg-gray-800 text-white rounded-md px-3 py-2 text-sm" min={new Date().toISOString().slice(0, 16)} />
                 </div>
                 
-                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified))} className="flex items-center gap-2 text-neutral-950">
+                <Button variant="outline" onClick={handleSchedule} disabled={isScheduling || !scheduleDate || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified)) || (content.some(item => item.platform.toLowerCase() === 'pinterest' && item.status === 'approved') && !selectedBoardId)} className="flex items-center gap-2 text-neutral-950">
                   <Clock className="h-4 w-4" />
                   Schedule
                 </Button>
                 
                 <Button 
                   onClick={handlePostAll} 
-                  disabled={isPosting || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified))}
+                  disabled={isPosting || (content.some(item => item.platform.toLowerCase() === 'reddit' && item.status === 'approved') && (!subreddit.trim() || !!subredditError || !subredditVerified)) || (content.some(item => item.platform.toLowerCase() === 'pinterest' && item.status === 'approved') && !selectedBoardId)}
                   className="text-black flex items-center gap-2 bg-blue-500 hover:bg-blue-400 disabled:opacity-100 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   {showPostAnimation ? (

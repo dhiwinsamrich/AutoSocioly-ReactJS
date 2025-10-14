@@ -703,6 +703,22 @@ class APIService {
       body: JSON.stringify({ subreddit }),
     });
   }
+
+  // Get Pinterest boards for an account
+  async getPinterestBoards(accountId: string): Promise<APIResponse> {
+    return this.request(`/v1/accounts/${accountId}/pinterest-boards`);
+  }
+
+  // Set Pinterest default board
+  async setPinterestDefaultBoard(accountId: string, defaultBoardId: string, defaultBoardName: string): Promise<APIResponse> {
+    return this.request(`/v1/accounts/${accountId}/pinterest-boards`, {
+      method: 'PUT',
+      body: JSON.stringify({ 
+        defaultBoardId, 
+        defaultBoardName 
+      }),
+    });
+  }
 }
 
 export const apiService = new APIService();
