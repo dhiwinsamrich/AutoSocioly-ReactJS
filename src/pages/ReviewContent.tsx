@@ -587,7 +587,7 @@ const ReviewContent = () => {
       // Convert relative URL to absolute URL using the API service method
       const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : apiService.getImageUrl(imageUrl);
       
-      console.log('Downloading image:', { originalUrl: imageUrl, fullUrl: fullImageUrl });
+      // Downloading image
       
       // Fetch the image with proper headers
       const response = await fetch(fullImageUrl, {
@@ -695,9 +695,9 @@ const ReviewContent = () => {
             const imageIndex = parseInt(itemId.split('-')[1]);
             if (imageIndex >= 0 && imageIndex < newImages.length) {
               newImages[imageIndex] = response.image_url;
-              console.log(`Updated image at index ${imageIndex} with new URL: ${response.image_url}`);
+              // Updated image at index
             }
-            console.log('Updated generated images:', newImages);
+            // Updated generated images
             return newImages;
           });
           
@@ -778,7 +778,7 @@ const handlePostAll = async () => {
   }
 
   // Show activity popup and add activity tracking
-  console.log('Starting posting process with activity tracking...');
+  // Starting posting process with activity tracking
   showPopup();
   const activityId = addActivity({
     type: 'posting',
@@ -789,7 +789,7 @@ const handlePostAll = async () => {
     progress: 0,
     platforms: filteredApprovedContent.map(item => item.platform),
   });
-  console.log('Activity created with ID:', activityId);
+  // Activity created with ID
 
   // Add live messages for posting process
   const messages = [
@@ -824,6 +824,9 @@ const handlePostAll = async () => {
       });
     }
   }, 800);
+
+  // Store interval IDs for cleanup
+  const intervalIds = [messageInterval, progressInterval];
 
   try {
     showNotification('info', 'Publishing', 'Publishing content to platforms...');
@@ -1001,8 +1004,7 @@ const handlePostAll = async () => {
 
   } catch (error: any) {
     // Clear intervals and update activity on error
-    clearInterval(messageInterval);
-    clearInterval(progressInterval);
+    intervalIds.forEach(id => clearInterval(id));
     clearCurrentMessage(activityId);
     updateActivity(activityId, {
       status: 'failed',
@@ -1022,6 +1024,8 @@ const handlePostAll = async () => {
       }
     });
   } finally {
+    // Clean up intervals
+    intervalIds.forEach(id => clearInterval(id));
     setIsPosting(false);
     setShowPostAnimation(false);
   }

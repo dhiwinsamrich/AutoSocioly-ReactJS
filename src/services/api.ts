@@ -397,7 +397,7 @@ class APIService {
           delete requestData.publishNow;
         }
 
-        console.log('Sending legacy workflow payload:', requestData);
+        // Sending legacy workflow payload
 
         const response = await fetch(`${this.baseUrl}/api/publish-content`, {
           method: 'POST',
@@ -459,7 +459,7 @@ class APIService {
           requestData.workflow_id = data.workflow_id;
         }
 
-        console.log('Sending single platform payload:', requestData);
+        // Sending single platform payload
 
         const response = await fetch(`${this.baseUrl}/api/publish-content`, {
           method: 'POST',
