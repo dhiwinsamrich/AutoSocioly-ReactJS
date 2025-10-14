@@ -66,18 +66,15 @@ class APIService {
       // Ensure path starts with /static/ (single slash)
       const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
       const fullUrl = `${baseUrl}${normalizedPath}`;
-      console.log('Generated image URL:', { imagePath, baseUrl, normalizedPath, fullUrl });
       return fullUrl;
     }
     
     if (imagePath.startsWith('/')) {
       const fullUrl = `${baseUrl}${imagePath}`;
-      console.log('Generated image URL:', { imagePath, baseUrl, fullUrl });
       return fullUrl;
     }
     
     const fullUrl = `${baseUrl}/${imagePath}`;
-    console.log('Generated image URL:', { imagePath, baseUrl, fullUrl });
     return fullUrl;
   }
 
@@ -122,7 +119,6 @@ class APIService {
       
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -336,7 +332,6 @@ class APIService {
         // Add media items if provided - they will be converted to ngrok URLs in backend
         if (data.mediaItems && data.mediaItems.length > 0) {
           requestData.mediaItems = data.mediaItems;
-          console.log(`Adding ${data.mediaItems.length} media items to request`);
         }
 
         // Add workflow ID if provided
@@ -350,7 +345,7 @@ class APIService {
           delete requestData.publishNow;
         }
 
-        console.log('Sending new format payload with media items:', requestData);
+        // Send new format payload with media items
 
         const response = await fetch(`${this.baseUrl}/api/publish-content`, {
           method: 'POST',
@@ -510,8 +505,6 @@ class APIService {
       }
 
     } catch (error) {
-      console.error('Failed to post content:', error);
-      
       // Update activity on error
       if (activityId && activityTracker) {
         activityTracker.updateActivity(activityId, {

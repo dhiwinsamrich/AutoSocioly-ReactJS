@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -106,13 +106,63 @@ const ReviewContent = () => {
     }
   }, [hasFetched]); // Include hasFetched dependency for proper React behavior
 
+  const fetchPinterestBoards = useCallback(async () => {
+    try {
+      setIsLoadingBoards(true);
+      setBoardError('');
+      
+      // Get connected accounts to find Pinterest account
+      const accountsResponse = await apiService.getAccounts();
+      if (!accountsResponse.success) {
+        throw new Error('Failed to retrieve connected accounts');
+      }
+
+      // Handle nested accounts structure
+      const connectedAccounts = accountsResponse.accounts?.data?.accounts || accountsResponse.accounts?.accounts || accountsResponse.accounts || [];
+      const pinterestAccount = connectedAccounts.find((account: any) => 
+        account.platform && account.platform.toLowerCase() === 'pinterest'
+      );
+
+      if (!pinterestAccount) {
+        throw new Error('No Pinterest account connected');
+      }
+
+      // Fetch Pinterest boards
+      const boardsResponse = await apiService.getPinterestBoards(pinterestAccount.id);
+      
+      // Handle both response formats (with and without success property)
+      const boards = boardsResponse.boards || (boardsResponse.success ? boardsResponse.data?.boards : null);
+      const defaultBoardId = boardsResponse.defaultBoardId || (boardsResponse.success ? boardsResponse.data?.defaultBoardId : null);
+      
+      if (boards && boards.length > 0) {
+        setPinterestBoards(boards);
+        
+        // Set default board if available
+        if (defaultBoardId) {
+          setSelectedBoardId(defaultBoardId);
+        } else if (boards.length > 0) {
+          setSelectedBoardId(boards[0].id);
+        }
+        
+        showNotification('success', 'Pinterest Boards Loaded', `Found ${boards.length} Pinterest boards`);
+      } else {
+        throw new Error(boardsResponse.message || 'Failed to load Pinterest boards');
+      }
+    } catch (error) {
+      setBoardError(error instanceof Error ? error.message : 'Failed to load Pinterest boards');
+      showNotification('error', 'Board Loading Failed', error instanceof Error ? error.message : 'Failed to load Pinterest boards');
+    } finally {
+      setIsLoadingBoards(false);
+    }
+  }, [showNotification]);
+
   // Auto-fetch Pinterest boards when Pinterest content is detected
   useEffect(() => {
     const hasPinterestContent = content.some(item => item.platform.toLowerCase() === 'pinterest');
     if (hasPinterestContent && pinterestBoards.length === 0 && !isLoadingBoards) {
       fetchPinterestBoards();
     }
-  }, [content, pinterestBoards.length, isLoadingBoards]);
+  }, [content, pinterestBoards.length, isLoadingBoards, fetchPinterestBoards]);
 
   const generateAnalyticsFromContent = (contentData: ContentReview[]) => {
     if (contentData.length === 0) return;
@@ -816,7 +866,7 @@ const handlePostAll = async () => {
               url: publicUrl
             });
           } catch (error) {
-            console.error(`Failed to convert image path ${imagePath}:`, error);
+            // Failed to convert image path
           }
         }
       }
@@ -960,7 +1010,6 @@ const handlePostAll = async () => {
       description: error.message || 'Failed to post content'
     });
 
-    console.error('Error posting content:', error);
     showNotification('error', 'Posting Failed', `Failed to post content: ${error.message}. Please try again.`);
     
     // Navigate to error page with error details
@@ -1127,57 +1176,6 @@ const handlePostAll = async () => {
       showNotification('error', 'Network Error', 'Failed to verify subreddit. Please check your connection and try again.');
     } finally {
       setIsVerifyingSubreddit(false);
-    }
-  };
-
-  const fetchPinterestBoards = async () => {
-    try {
-      setIsLoadingBoards(true);
-      setBoardError('');
-      
-      // Get connected accounts to find Pinterest account
-      const accountsResponse = await apiService.getAccounts();
-      if (!accountsResponse.success) {
-        throw new Error('Failed to retrieve connected accounts');
-      }
-
-      // Handle nested accounts structure
-      const connectedAccounts = accountsResponse.accounts?.data?.accounts || accountsResponse.accounts?.accounts || accountsResponse.accounts || [];
-      const pinterestAccount = connectedAccounts.find((account: any) => 
-        account.platform && account.platform.toLowerCase() === 'pinterest'
-      );
-
-      if (!pinterestAccount) {
-        throw new Error('No Pinterest account connected');
-      }
-
-      // Fetch Pinterest boards
-      const boardsResponse = await apiService.getPinterestBoards(pinterestAccount.id);
-      
-      // Handle both response formats (with and without success property)
-      const boards = boardsResponse.boards || (boardsResponse.success ? boardsResponse.data?.boards : null);
-      const defaultBoardId = boardsResponse.defaultBoardId || (boardsResponse.success ? boardsResponse.data?.defaultBoardId : null);
-      
-      if (boards && boards.length > 0) {
-        setPinterestBoards(boards);
-        
-        // Set default board if available
-        if (defaultBoardId) {
-          setSelectedBoardId(defaultBoardId);
-        } else if (boards.length > 0) {
-          setSelectedBoardId(boards[0].id);
-        }
-        
-        showNotification('success', 'Pinterest Boards Loaded', `Found ${boards.length} Pinterest boards`);
-      } else {
-        throw new Error(boardsResponse.message || 'Failed to load Pinterest boards');
-      }
-    } catch (error) {
-      console.error('Error fetching Pinterest boards:', error);
-      setBoardError(error instanceof Error ? error.message : 'Failed to load Pinterest boards');
-      showNotification('error', 'Board Loading Failed', error instanceof Error ? error.message : 'Failed to load Pinterest boards');
-    } finally {
-      setIsLoadingBoards(false);
     }
   };
 
