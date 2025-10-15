@@ -3,7 +3,7 @@
 # ===========================================
 FROM node:18-alpine AS builder
 
-ARG VITE_API_URL="http://148.113.16.40:8023"
+ARG VITE_API_URL="https://autosocioly-api.pripod.com"
 ENV VITE_API_URL=${VITE_API_URL}
 
 WORKDIR /app

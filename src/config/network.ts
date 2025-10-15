@@ -23,6 +23,7 @@ export const NETWORK_CONFIG = {
 
 // Generate API URL based on configuration
 export const getApiUrl = (): string => {
+  console.log("***"+NETWORK_CONFIG.CONNECTION_MODE)
   switch (NETWORK_CONFIG.CONNECTION_MODE) {
     case 'production':
       return NETWORK_CONFIG.PRODUCTION_API_URL;
