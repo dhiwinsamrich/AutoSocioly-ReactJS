@@ -88,6 +88,9 @@ const ReviewContent = () => {
     itemId: ''
   });
   const [subreddit, setSubreddit] = useState<string>('');
+  // Reddit flair inputs (optional; subreddit may require flair)
+  const [redditFlairId, setRedditFlairId] = useState<string>('');
+  const [redditFlairText, setRedditFlairText] = useState<string>('');
   const [subredditError, setSubredditError] = useState<string>('');
   const [isVerifyingSubreddit, setIsVerifyingSubreddit] = useState<boolean>(false);
   const [subredditVerified, setSubredditVerified] = useState<boolean>(false);
@@ -893,9 +896,16 @@ const handlePostAll = async () => {
 
       // Add platform-specific data for Reddit
       if (mappedPlatform === 'reddit' && subreddit.trim()) {
-        platformEntry.platformSpecificData = {
+        const platformSpecificData: any = {
           subreddit: subreddit.trim()
         };
+        // Prefer flair_id when provided; fallback to flair text when set
+        if (redditFlairId && redditFlairId.trim()) {
+          platformSpecificData.flair_id = redditFlairId.trim();
+        } else if (redditFlairText && redditFlairText.trim()) {
+          platformSpecificData.flair = redditFlairText.trim();
+        }
+        platformEntry.platformSpecificData = platformSpecificData;
       }
       
       // Add platform-specific data for Pinterest
@@ -1413,7 +1423,7 @@ const handlePostAll = async () => {
           </div>
         </GlassCard>
 
-        {/* Global Reddit Subreddit Input - Show if any Reddit content exists */}
+        {/* Global Reddit Subreddit & Flair Input - Show if any Reddit content exists */}
         {content.some(item => item.platform.toLowerCase() === 'reddit') && (
           <GlassCard className="p-6 mb-8">
             <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-neutral-950">
@@ -1454,6 +1464,33 @@ const handlePostAll = async () => {
                   )}
                 </Button>
               </div>
+              {/* Flair inputs (optional; some subreddits require flair) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-600">Flair ID (preferred)</label>
+                  <input
+                    type="text"
+                    value={redditFlairId}
+                    onChange={(e) => setRedditFlairId(e.target.value)}
+                    placeholder="Paste flair_id (e.g., flair template id)"
+                    className="w-full px-3 py-2 border rounded-md text-neutral-950 bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-gray-600">Flair Text (fallback)</label>
+                  <input
+                    type="text"
+                    value={redditFlairText}
+                    onChange={(e) => setRedditFlairText(e.target.value)}
+                    placeholder="e.g., Discussion, Question"
+                    className="w-full px-3 py-2 border rounded-md text-neutral-950 bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600">
+                Some subreddits require a post flair. If your post fails with a flair error, paste a valid Flair ID (recommended)
+                or flair text here and retry. Flair ID is more reliable than text.
+              </p>
               
               {/* Error Messages */}
               {subredditError && (
