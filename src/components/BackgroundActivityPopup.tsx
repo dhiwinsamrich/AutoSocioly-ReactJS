@@ -121,22 +121,6 @@ export const BackgroundActivityPopup = ({
     }
   };
 
-  const formatTime = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    
-    if (seconds < 60) {
-      return `${seconds}s ago`;
-    } else if (minutes < 60) {
-      return `${minutes}m ago`;
-    } else {
-      return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-  };
-
-
   // Show active activities (in progress or pending)
   const activeActivities = activities.filter(activity => 
     activity.status === 'in_progress' || activity.status === 'pending'
@@ -158,7 +142,38 @@ export const BackgroundActivityPopup = ({
 
   // Prioritize active activities, fallback to recent if no active ones
   const allActivities = activeActivities.length > 0 ? activeActivities : recentActivities;
-  const currentActivity = allActivities[currentActivityIndex] || allActivities[0];
+  const currentActivity = allActivities[currentActivityIndex] ?? allActivities[0];
+
+  const getStatusLabel = (status: ActivityItem['status']) => {
+    if (status === 'in_progress') {
+      return null;
+    }
+
+    if (status === 'completed') {
+      return 'DONE';
+    }
+
+    if (status === 'failed') {
+      return 'ERROR';
+    }
+
+    if (status === 'pending') {
+      return 'PENDING';
+    }
+
+    return null;
+  };
+
+  const currentStatusLabel = currentActivity ? getStatusLabel(currentActivity.status) : null;
+  const currentMessage = currentActivity?.currentMessage ?? currentActivity?.content_preview ?? '';
+  const hasProgress = currentActivity?.progress !== undefined && currentActivity?.status === 'in_progress';
+  const hasPlatforms = (currentActivity?.platforms?.length ?? 0) > 0;
+  const hasPostUrls = currentActivity && currentActivity.post_urls && Object.keys(currentActivity.post_urls).length > 0;
+  const trimmedErrorMessage = currentActivity?.error_message
+    ? currentActivity.error_message.length > 30
+      ? `${currentActivity.error_message.substring(0, 30)}...`
+      : currentActivity.error_message
+    : null;
 
   // Force re-render when current activity status changes
   useEffect(() => {
@@ -261,53 +276,48 @@ export const BackgroundActivityPopup = ({
                   
                   {/* Status */}
                   <div className={cn("text-xs sm:text-sm font-bold", getStatusColor(currentActivity.status))}>
-                    {currentActivity.status === 'in_progress' ? ' ' : 
-                     currentActivity.status === 'completed' ? 'DONE' : 
-                     currentActivity.status === 'failed' ? 'ERROR' : 'PENDING'}
+                    {currentStatusLabel ?? ' '}
                   </div>
                   
                   {/* Current Message or Content Preview */}
-                  {(currentActivity.currentMessage || currentActivity.content_preview) && (
+                  {currentMessage && (
                     <div className="text-yellow-400 text-xs animate-pulse text-center leading-tight">
-                      {currentActivity.currentMessage || currentActivity.content_preview || ''}
-                      {(currentActivity.currentMessage || currentActivity.content_preview || '').length > 40 && '...'}
+                      {currentMessage}
+                      {currentMessage.length > 40 && '...'}
                     </div>
                   )}
                   
                   {/* Platform Information */}
-                  {currentActivity.platforms && currentActivity.platforms.length > 0 && (
+                  {hasPlatforms && (
                     <div className="text-blue-400 text-xs text-center">
-                      {currentActivity.platforms.join(', ').toUpperCase()}
+                      {currentActivity?.platforms?.join(', ').toUpperCase()}
                     </div>
                   )}
                   
                   {/* Post URLs */}
-                  {currentActivity.post_urls && Object.keys(currentActivity.post_urls).length > 0 && (
+                  {hasPostUrls && (
                     <div className="text-green-400 text-xs text-center">
                       ✓ Posted
                     </div>
                   )}
                   
                   {/* Error Message */}
-                  {currentActivity.error_message && (
+                  {trimmedErrorMessage && (
                     <div className="text-red-400 text-xs text-center">
-                      {currentActivity.error_message.length > 30 
-                        ? currentActivity.error_message.substring(0, 30) + '...'
-                        : currentActivity.error_message
-                      }
+                      {trimmedErrorMessage}
                     </div>
                   )}
                   
                   {/* Progress */}
-                  {currentActivity.progress !== undefined && currentActivity.status === 'in_progress' && (
+                  {hasProgress && (
                     <div className="space-y-1">
                       <div className="w-16 h-1 bg-gray-700 rounded-full overflow-hidden mx-auto">
                         <div
                           className="h-full bg-green-400 transition-all duration-300 ease-out"
-                          style={{ width: `${Math.min(100, Math.max(0, currentActivity.progress))}%` }}
+                          style={{ width: `${Math.min(100, Math.max(0, currentActivity?.progress ?? 0))}%` }}
                         />
                       </div>
-                      <div className="text-gray-400 text-xs">{Math.round(currentActivity.progress || 0)}%</div>
+                      <div className="text-gray-400 text-xs">{Math.round(currentActivity?.progress ?? 0)}%</div>
                     </div>
                   )}
                   
@@ -349,7 +359,7 @@ export const BackgroundActivityPopup = ({
           )}
           
           {/* Current Message Indicator */}
-          {currentActivity && currentActivity.currentMessage && (
+          {currentActivity?.currentMessage && (
             <div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-yellow-500 rounded-full animate-pulse" />
           )}
         </div>

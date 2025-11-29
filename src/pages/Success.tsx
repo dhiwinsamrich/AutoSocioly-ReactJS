@@ -1,13 +1,12 @@
-import { Navigation } from '@/components/Navigation';
 import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Home, LayoutDashboard, ExternalLink, Calendar, User, AtSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { APIPostResponse, SuccessPagePostData } from '@/types/post';
+import { APIPostResponse } from '@/types/post';
 
 interface SuccessProps {
-  title?: string;
-  message?: string;
+  readonly title?: string;
+  readonly message?: string;
 }
 
 export default function Success({
@@ -18,9 +17,9 @@ export default function Success({
   const location = useLocation();
   
   // Get data from location state
-  const successTitle = location.state?.title || title;
-  const successMessage = location.state?.message || message;
-  const apiResponse: APIPostResponse | null = location.state?.postData || null;
+  const successTitle = location.state?.title ?? title;
+  const successMessage = location.state?.message ?? message;
+  const apiResponse: APIPostResponse | null = location.state?.postData ?? null;
   
   // Extract post data from API response
   const postData = apiResponse?.post || apiResponse?.data?.post || null;
@@ -58,25 +57,29 @@ export default function Success({
         </div>
 
         {/* Post Details */}
-        {postData && postData.platforms && postData.platforms.length > 0 && (
+        {postData?.platforms?.length ? (
           <div className="mb-8 space-y-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Post Details</h2>
             
-            {postData.platforms.map((platformData, index) => (
-              <div key={index} className="bg-white/50 rounded-lg p-6 border border-gray-200">
+            {postData.platforms.map((platformData, index) => {
+              const platformName = platformData.platform ?? 'Platform';
+              const platformKey = platformName || `platform-${index}`;
+              const cardKey = platformData.platformPostUrl ?? `${platformKey}-${index}`;
+              return (
+              <div key={cardKey} className="bg-white/50 rounded-lg p-6 border border-gray-200">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">
-                        {capitalizePlatform(platformData.platform).charAt(0)}
+                        {capitalizePlatform(platformName).charAt(0)}
                       </span>
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">
-                        {capitalizePlatform(platformData.platform)}
+                        {capitalizePlatform(platformName)}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Status: <span className="capitalize font-medium text-green-600">{platformData.status}</span>
+                        Status: <span className="capitalize font-medium text-green-600">{platformData.status ?? 'unknown'}</span>
                       </p>
                     </div>
                   </div>
@@ -87,7 +90,7 @@ export default function Success({
                     <User className="h-4 w-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-600">Display Name</p>
-                      <p className="font-medium text-gray-900">{platformData.accountId.displayName}</p>
+                      <p className="font-medium text-gray-900">{platformData.accountId?.displayName ?? 'Unknown'}</p>
                     </div>
                   </div>
 
@@ -95,7 +98,7 @@ export default function Success({
                     <AtSign className="h-4 w-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-600">Username</p>
-                      <p className="font-medium text-gray-900">{platformData.accountId.username}</p>
+                      <p className="font-medium text-gray-900">{platformData.accountId?.username ?? 'N/A'}</p>
                     </div>
                   </div>
 
@@ -103,7 +106,7 @@ export default function Success({
                     <Calendar className="h-4 w-4 text-gray-500" />
                     <div>
                       <p className="text-sm text-gray-600">Published At</p>
-                      <p className="font-medium text-gray-900">{formatDate(platformData.publishedAt)}</p>
+                      <p className="font-medium text-gray-900">{platformData.publishedAt ? formatDate(platformData.publishedAt) : 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -111,17 +114,17 @@ export default function Success({
                 {/* View Post Button */}
                 {platformData.platformPostUrl && (
                   <Button 
-                    onClick={() => window.open(platformData.platformPostUrl, '_blank')}
+                    onClick={() => globalThis.open(platformData.platformPostUrl, '_blank')}
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    View Post on {capitalizePlatform(platformData.platform)}
+                    View Post on {capitalizePlatform(platformName)}
                   </Button>
                 )}
               </div>
-            ))}
+            )})}
           </div>
-        )}
+        ) : null}
         
         {/* Navigation Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

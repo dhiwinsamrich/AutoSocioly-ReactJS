@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { useActivity } from '@/contexts/ActivityContext';
-import { ActivityItem } from './BackgroundActivityPopup';
 import { useEffect, useRef } from 'react';
 
 export const ActivityDemo = () => {
@@ -10,7 +9,9 @@ export const ActivityDemo = () => {
   // Cleanup intervals on unmount
   useEffect(() => {
     return () => {
-      intervalsRef.current.forEach(interval => clearInterval(interval));
+      for (const interval of intervalsRef.current) {
+        clearInterval(interval);
+      }
       intervalsRef.current.clear();
     };
   }, []);

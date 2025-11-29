@@ -104,14 +104,15 @@ export const EditModal: React.FC<EditModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="hashtags">Current Hashtags</Label>
                 <div className="flex flex-wrap gap-2">
-                  {hashtags.map((tag, index) => (
+                  {hashtags.map((tag) => (
                     <Badge
-                      key={index}
+                      key={tag}
                       variant="secondary"
                       className="flex items-center gap-1"
                     >
                       #{tag}
                       <button
+                        type="button"
                         onClick={() => removeHashtag(tag)}
                         className="ml-1 hover:text-red-500"
                       >

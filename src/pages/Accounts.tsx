@@ -5,9 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ApiKeyChangeModal } from '@/components/ApiKeyChangeModal';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, User, Mail, Calendar, Activity, BarChart3, Settings, RefreshCw, TrendingUp, Image, FileText, Zap, Users, Key } from 'lucide-react';
+import { Plus, Facebook, Instagram, Linkedin, CheckCircle, AlertCircle, Clock, User, Calendar, Activity, Settings, RefreshCw, TrendingUp, Image, Users, Key } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faReddit, faPinterest } from '@fortawesome/free-brands-svg-icons';
 
@@ -138,7 +137,6 @@ export default function Accounts() {
   const [refreshing, setRefreshing] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [currentApiKey, setCurrentApiKey] = useState<string>('');
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAccountDetails();
@@ -202,7 +200,7 @@ export default function Accounts() {
   };
 
   const handleNavigateToConnections = () => {
-    window.location.href = 'https://getlate.dev/dashboard/connections';
+    globalThis.location.href = 'https://getlate.dev/dashboard/connections';
   };
 
   const getPlatformDisplayName = (platform: string) => {
@@ -223,16 +221,6 @@ export default function Accounts() {
     }
     return React.createElement(icon, { className });
   };
-
-
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Not connected';
     try {
@@ -283,7 +271,7 @@ export default function Accounts() {
     );
   }
 
-  const { profile, usage_stats, plan_limits, connected_accounts, recent_activity, profile_details } = accountDetails;
+  const { profile, usage_stats, plan_limits, connected_accounts, profile_details } = accountDetails;
 
   return (
     <div className="min-h-screen bg-neutral-950">

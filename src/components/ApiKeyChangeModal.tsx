@@ -7,10 +7,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, CheckCircle, AlertCircle, Settings } from 'lucide-react';
 
 interface ApiKeyChangeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (apiKey: string) => Promise<void>;
-  currentApiKey?: string;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onSave: (apiKey: string) => Promise<void>;
+  readonly currentApiKey?: string;
 }
 
 export function ApiKeyChangeModal({ isOpen, onClose, onSave, currentApiKey }: ApiKeyChangeModalProps) {

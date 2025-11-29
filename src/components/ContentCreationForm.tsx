@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { GlassCard } from './GlassCard';
 import { NotificationToast } from './NotificationToast';
@@ -14,12 +12,7 @@ import { useActivity } from '../contexts/ActivityContext';
 import { apiService } from '../services/api';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter, faFacebookF, faInstagram, faLinkedinIn, faRedditAlien, faPinterestP } from '@fortawesome/free-brands-svg-icons';
-import { 
-  Wand2, 
-  Mic, 
-  Loader2,
-  Image
-} from 'lucide-react';
+import { Wand2, Loader2, Image } from 'lucide-react';
 
 const platforms = [
   { 
@@ -379,12 +372,13 @@ export const ContentCreationForm = () => {
                 const isSelected = selectedPlatforms.includes(platform.id);
                 
                 return (
-                  <div
+                  <button
                     key={platform.id}
+                    type="button"
                     onClick={() => handlePlatformToggle(platform.id)}
                     className={`
-                      p-4 rounded-lg border-2 cursor-pointer transition-all duration-300
-                      flex flex-col items-center space-y-2 hover:shadow-md relative
+                      p-4 rounded-lg border-2 transition-all duration-300
+                      flex flex-col items-center space-y-2 hover:shadow-md relative focus:outline-none focus-visible:ring-2 focus-visible:ring-black
                       ${isSelected 
                         ? 'border-black bg-black/5 shadow-lg' 
                         : 'border-gray-200 hover:border-black/50'
@@ -413,7 +407,7 @@ export const ContentCreationForm = () => {
                         </svg>
                       )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

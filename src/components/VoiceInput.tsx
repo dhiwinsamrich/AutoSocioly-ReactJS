@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Square } from 'lucide-react';
+import { Mic, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
@@ -26,7 +26,7 @@ export const VoiceInput: React.FC<VoiceInputProps> = ({
   const [isActive, setIsActive] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState('');
 
-  const { isListening, isSupported, transcript, error, toggleListening, stopListening, abortListening, clearTranscript } = useVoiceRecognition({
+  const { isListening, isSupported, transcript, error, toggleListening, stopListening, clearTranscript } = useVoiceRecognition({
     continuous: true,
     interimResults: true,
     onResult: (result) => {
