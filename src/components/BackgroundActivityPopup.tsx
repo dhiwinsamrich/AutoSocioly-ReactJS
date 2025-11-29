@@ -34,11 +34,42 @@ interface BackgroundActivityPopupProps {
   onRemoveActivity: (id: string) => void;
 }
 
-export const BackgroundActivityPopup = ({ 
-  isVisible, 
-  onToggle, 
-  activities, 
-  onRemoveActivity 
+interface ComputedActivityState {
+  allActivities: ActivityItem[];
+  currentActivity: ActivityItem | undefined;
+}
+
+function getCurrentActivitiesState(
+  activities: ActivityItem[],
+  currentActivityIndex: number,
+): ComputedActivityState {
+  const activeActivities = activities.filter(
+    (activity) => activity.status === 'in_progress' || activity.status === 'pending',
+  );
+
+  const recentActivities = activities
+    .filter((activity) => {
+      if (activity.status === 'completed' || activity.status === 'failed') {
+        const now = new Date();
+        const activityTime = activity.timestamp;
+        const timeDiff = now.getTime() - activityTime.getTime();
+        return timeDiff < 5000;
+      }
+      return false;
+    })
+    .slice(0, 1);
+
+  const allActivities = activeActivities.length > 0 ? activeActivities : recentActivities;
+  const currentActivity = allActivities[currentActivityIndex] ?? allActivities[0];
+
+  return { allActivities, currentActivity };
+}
+
+export const BackgroundActivityPopup = ({
+  isVisible,
+  onToggle,
+  activities,
+  onRemoveActivity,
 }: BackgroundActivityPopupProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasNewActivities, setHasNewActivities] = useState(false);
@@ -121,28 +152,10 @@ export const BackgroundActivityPopup = ({
     }
   };
 
-  // Show active activities (in progress or pending)
-  const activeActivities = activities.filter(activity => 
-    activity.status === 'in_progress' || activity.status === 'pending'
+  const { allActivities, currentActivity } = getCurrentActivitiesState(
+    activities,
+    currentActivityIndex,
   );
-  
-  // Show recently completed/failed activities (within last 5 seconds) or if no active ones
-  const recentActivities = activities
-    .filter(activity => {
-      if (activity.status === 'completed' || activity.status === 'failed') {
-        const now = new Date();
-        const activityTime = activity.timestamp;
-        const timeDiff = now.getTime() - activityTime.getTime();
-        // Show completed activities for 5 seconds after completion
-        return timeDiff < 5000;
-      }
-      return false;
-    })
-    .slice(0, 1);
-
-  // Prioritize active activities, fallback to recent if no active ones
-  const allActivities = activeActivities.length > 0 ? activeActivities : recentActivities;
-  const currentActivity = allActivities[currentActivityIndex] ?? allActivities[0];
 
   const getStatusLabel = (status: ActivityItem['status']) => {
     if (status === 'in_progress') {

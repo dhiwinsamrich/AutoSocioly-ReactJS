@@ -302,10 +302,138 @@ class APIService {
     return this.request(`/api/workflow/${workflowId}`);
   }
 
+  private async sendPublishRequest(requestData: PostRequestData): Promise<APIResponse> {
+    const response = await fetch(`${this.baseUrl}/api/publish-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        try {
+          const textError = await response.text();
+          errorMessage = textError || errorMessage;
+        } catch {
+          // Fallback to status error
+        }
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
+  private buildNewFormatRequest(data: Record<string, any>): PostRequestData {
+    const requestData: PostRequestData = {
+      content: data.content,
+      platforms: data.platforms,
+      publishNow: data.publishNow !== undefined ? data.publishNow : true,
+      timezone: data.timezone || 'America/New_York',
+    };
+
+    if (data.mediaItems && data.mediaItems.length > 0) {
+      requestData.mediaItems = data.mediaItems;
+    }
+
+    if (data.workflow_id) {
+      requestData.workflow_id = data.workflow_id;
+    }
+
+    if (data.scheduledFor) {
+      requestData.scheduledFor = data.scheduledFor;
+      delete requestData.publishNow;
+    }
+
+    return requestData;
+  }
+
+  private buildWorkflowFormatRequest(data: Record<string, any>): PostRequestData {
+    const requestData: PostRequestData = {
+      workflow_id: data.workflow_id,
+      platforms: data.platforms || [],
+      platform_content: data.platform_content || {},
+      generated_images: data.generated_images || [],
+      publishNow: data.publishNow !== undefined ? data.publishNow : true,
+    };
+
+    if (data.mediaItems && data.mediaItems.length > 0) {
+      requestData.mediaItems = data.mediaItems;
+    }
+
+    if (data.scheduledFor) {
+      requestData.scheduledFor = data.scheduledFor;
+      delete requestData.publishNow;
+    }
+
+    return requestData;
+  }
+
+  private buildSinglePlatformRequest(data: Record<string, any>): PostRequestData {
+    const content = data.content || data.platform_content?.content || '';
+    const hashtags = data.hashtags || data.platform_content?.hashtags || [];
+    const hashtagsText = hashtags.map((tag: string) => `#${tag}`).join(' ');
+    const fullContent = content + (hashtagsText ? `\n\n${hashtagsText}` : '');
+
+    const requestData: PostRequestData = {
+      content: fullContent,
+      platforms: [
+        {
+          platform: data.platform.toLowerCase(),
+          accountId: data.accountId || 'unknown',
+        },
+      ],
+      publishNow: data.publishNow !== undefined ? data.publishNow : true,
+    };
+
+    if (data.media_urls && data.media_urls.length > 0) {
+      requestData.mediaItems = data.media_urls.map((url: string) => ({
+        type: 'image',
+        url,
+      }));
+    } else if (data.mediaItems && data.mediaItems.length > 0) {
+      requestData.mediaItems = data.mediaItems;
+    }
+
+    if (data.workflow_id) {
+      requestData.workflow_id = data.workflow_id;
+    }
+
+    return requestData;
+  }
+
+  private updatePostingActivitySuccess(activityId: string | null, title: string) {
+    if (activityId && activityTracker) {
+      activityTracker.updateActivity(activityId, {
+        status: 'completed',
+        progress: 100,
+        title,
+      });
+    }
+  }
+
+  private updatePostingActivityError(activityId: string | null, error: unknown) {
+    if (activityId && activityTracker) {
+      activityTracker.updateActivity(activityId, {
+        status: 'failed',
+        title: 'Content publishing failed',
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    }
+  }
+
   // Enhanced post content method with proper media handling
   async postContent(data: Record<string, any>): Promise<APIResponse> {
-    // Track activity if enabled
     let activityId: string | null = null;
+
     if (activityTrackingEnabled && activityTracker) {
       const platforms = data.platforms?.map((p: any) => p.platform || p).join(', ') || 'Unknown';
       activityId = activityTracker.addActivity({
@@ -319,201 +447,32 @@ class APIService {
     }
 
     try {
-      // Check if this is the new format with content and platforms array
       if (data.content && data.platforms && Array.isArray(data.platforms)) {
-        // New format: direct posting with content and platforms
-        const requestData: PostRequestData = {
-          content: data.content,
-          platforms: data.platforms,
-          publishNow: data.publishNow !== undefined ? data.publishNow : true,
-          timezone: data.timezone || "America/New_York"
-        };
-
-        // Add media items if provided - they will be converted to ngrok URLs in backend
-        if (data.mediaItems && data.mediaItems.length > 0) {
-          requestData.mediaItems = data.mediaItems;
-        }
-
-        // Add workflow ID if provided
-        if (data.workflow_id) {
-          requestData.workflow_id = data.workflow_id;
-        }
-
-        // Add scheduling if provided
-        if (data.scheduledFor) {
-          requestData.scheduledFor = data.scheduledFor;
-          delete requestData.publishNow;
-        }
-
-        // Send new format payload with media items
-
-        const response = await fetch(`${this.baseUrl}/api/publish-content`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(requestData)
-        });
-
-        if (!response.ok) {
-          let errorMessage = `HTTP error! status: ${response.status}`;
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            try {
-              const textError = await response.text();
-              errorMessage = textError || errorMessage;
-            } catch (textError) {
-              // Fallback to status error
-            }
-          }
-          throw new Error(errorMessage);
-        }
-
-        return await response.json();
-      } 
-      // Check if this is workflow-based posting format
-      else if (data.workflow_id || data.platform_content) {
-        // Legacy workflow format handling
-        const requestData: PostRequestData = {
-          workflow_id: data.workflow_id,
-          platforms: data.platforms || [],
-          platform_content: data.platform_content || {},
-          generated_images: data.generated_images || [],
-          publishNow: data.publishNow !== undefined ? data.publishNow : true
-        };
-
-        // Add media items if provided
-        if (data.mediaItems && data.mediaItems.length > 0) {
-          requestData.mediaItems = data.mediaItems;
-        }
-
-        // If scheduling is required
-        if (data.scheduledFor) {
-          requestData.scheduledFor = data.scheduledFor;
-          delete requestData.publishNow;
-        }
-
-        // Sending legacy workflow payload
-
-        const response = await fetch(`${this.baseUrl}/api/publish-content`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(requestData)
-        });
-
-        if (!response.ok) {
-          let errorMessage = `HTTP error! status: ${response.status}`;
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            try {
-              const textError = await response.text();
-              errorMessage = textError || errorMessage;
-            } catch (textError) {
-              // Fallback to status error
-            }
-          }
-          throw new Error(errorMessage);
-        }
-
-        return await response.json();
-      }
-      // Single platform posting format
-      else if (data.platform && (data.content || data.platform_content)) {
-        // Single platform format - convert to new format
-        const content = data.content || data.platform_content?.content || '';
-        const hashtags = data.hashtags || data.platform_content?.hashtags || [];
-        const hashtagsText = hashtags.map(tag => `#${tag}`).join(' ');
-        const fullContent = content + (hashtagsText ? `\n\n${hashtagsText}` : '');
-
-        const requestData: PostRequestData = {
-          content: fullContent,
-          platforms: [{
-            platform: data.platform.toLowerCase(),
-            accountId: data.accountId || 'unknown'
-          }],
-          publishNow: data.publishNow !== undefined ? data.publishNow : true
-        };
-
-        // Add media items if provided
-        if (data.media_urls && data.media_urls.length > 0) {
-          requestData.mediaItems = data.media_urls.map(url => ({
-            type: 'image',
-            url: url
-          }));
-        } else if (data.mediaItems && data.mediaItems.length > 0) {
-          requestData.mediaItems = data.mediaItems;
-        }
-
-        // Add workflow ID if provided
-        if (data.workflow_id) {
-          requestData.workflow_id = data.workflow_id;
-        }
-
-        // Sending single platform payload
-
-        const response = await fetch(`${this.baseUrl}/api/publish-content`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(requestData)
-        });
-
-        if (!response.ok) {
-          let errorMessage = `HTTP error! status: ${response.status}`;
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.message || errorData.error || errorMessage;
-          } catch (jsonError) {
-            try {
-              const textError = await response.text();
-              errorMessage = textError || errorMessage;
-            } catch (textError) {
-              // Fallback to status error
-            }
-          }
-          throw new Error(errorMessage);
-        }
-
-        const result = await response.json();
-        
-        // Update activity on success
-        if (activityId && activityTracker) {
-          activityTracker.updateActivity(activityId, {
-            status: 'completed',
-            progress: 100,
-            title: 'Content published successfully',
-          });
-        }
-        
+        const requestData = this.buildNewFormatRequest(data);
+        const result = await this.sendPublishRequest(requestData);
+        this.updatePostingActivitySuccess(activityId, 'Content published successfully');
         return result;
       }
-      else {
-        throw new Error('Invalid payload format: missing required fields (content + platforms, or workflow_id + platform_content, or platform + content)');
+
+      if (data.workflow_id || data.platform_content) {
+        const requestData = this.buildWorkflowFormatRequest(data);
+        const result = await this.sendPublishRequest(requestData);
+        this.updatePostingActivitySuccess(activityId, 'Content published successfully');
+        return result;
       }
 
-    } catch (error) {
-      // Update activity on error
-      if (activityId && activityTracker) {
-        activityTracker.updateActivity(activityId, {
-          status: 'failed',
-          title: 'Content publishing failed',
-          description: error instanceof Error ? error.message : 'Unknown error occurred',
-        });
+      if (data.platform && (data.content || data.platform_content)) {
+        const requestData = this.buildSinglePlatformRequest(data);
+        const result = await this.sendPublishRequest(requestData);
+        this.updatePostingActivitySuccess(activityId, 'Content published successfully');
+        return result;
       }
-      
+
+      throw new Error(
+        'Invalid payload format: missing required fields (content + platforms, or workflow_id + platform_content, or platform + content)',
+      );
+    } catch (error) {
+      this.updatePostingActivityError(activityId, error);
       throw error;
     }
   }

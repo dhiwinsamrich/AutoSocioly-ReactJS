@@ -334,9 +334,13 @@ const ReviewContent = () => {
         };
 
         // Calculate average engagement score
-        const engagementScores = successfulAnalyses.map(analysis => {
+        const engagementScores = successfulAnalyses.map((analysis) => {
           const score = analysis!.analysis.engagement_score ?? 75;
-          return typeof score === 'string' ? parseInt(score) : score;
+          if (typeof score === 'string') {
+            const parsed = Number.parseInt(score, 10);
+            return Number.isNaN(parsed) ? 75 : parsed;
+          }
+          return score;
         });
 
         const avgEngagement = Math.round(

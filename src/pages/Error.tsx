@@ -3,13 +3,16 @@ import { GlassCard } from '@/components/GlassCard';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+
 interface ErrorProps {
   code?: string;
   title?: string;
   message?: string;
   details?: string;
 }
-export default function Error({
+
+// Use a distinct component name to avoid confusion with the built-in Error type
+export default function ErrorPage({
   code = "500",
   title = "Oops! Something went wrong",
   message = "An unexpected error occurred. Please try again later.",

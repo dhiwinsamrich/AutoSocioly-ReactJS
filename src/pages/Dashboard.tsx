@@ -145,7 +145,11 @@ export default function Dashboard() {
 
         // Calculate metrics
         const totalFollowers = accounts.reduce((sum: number, acc: any) => {
-          return sum + (parseInt(acc.followers) || parseInt(acc.followers_count) || 0);
+          const followers = Number.parseInt(String(acc.followers ?? ''), 10);
+          const followersCount = Number.parseInt(String(acc.followers_count ?? ''), 10);
+          const safeFollowers = Number.isNaN(followers) ? 0 : followers;
+          const safeFollowersCount = Number.isNaN(followersCount) ? 0 : followersCount;
+          return sum + (safeFollowers || safeFollowersCount);
         }, 0);
         setMetrics({
           totalPosts: postingHistoryResponse.data?.history?.length || postingHistoryResponse.data?.posts?.length || 0,

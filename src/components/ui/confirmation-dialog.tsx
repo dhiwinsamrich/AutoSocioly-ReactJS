@@ -63,7 +63,16 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        role="button"
+        tabIndex={0}
+        aria-label="Close dialog"
         onClick={onClose}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClose();
+          }
+        }}
       />
       
       {/* Dialog */}
